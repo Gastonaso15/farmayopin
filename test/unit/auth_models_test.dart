@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:farmayopin/features/auth/data/models/auth_response.dart';
 import 'package:farmayopin/features/auth/data/models/login_request.dart';
+import 'package:farmayopin/features/auth/data/models/register_request.dart';
 
 void main() {
   group('Auth Models Test', () {
@@ -11,6 +12,18 @@ void main() {
       );
       final json = request.toJson();
       expect(json['email'], 'test@example.com');
+      expect(json['password'], 'password123');
+    });
+
+    test('RegisterRequest toJson genera el formato esperado por Spring Boot', () {
+      const request = RegisterRequest(
+        nombre: 'Gastón Pérez',
+        email: 'gaston@utec.edu.uy',
+        password: 'password123',
+      );
+      final json = request.toJson();
+      expect(json['nombre'], 'Gastón Pérez');
+      expect(json['email'], 'gaston@utec.edu.uy');
       expect(json['password'], 'password123');
     });
 
