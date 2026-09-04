@@ -1,73 +1,73 @@
-# 🏥 FarmaYopin — Aplicación Móvil
+# FarmaYopin - Aplicacion Movil
 
-Aplicación móvil cliente para la gestión de artículos farmacéuticos, pedidos, recetas médicas y catálogo de productos. Desarrollada en **Flutter** para el curso *Taller de Aplicaciones Móviles*, como parte de una solución arquitectónica distribuida con backend en **Spring Boot** y persistencia en **MySQL**.
-
----
-
-## 📋 Índice
-- [Arquitectura del Sistema](#-arquitectura-del-sistema)
-- [Funcionalidades y Pantallas Implementadas](#-funcionalidades-y-pantallas-implementadas)
-- [Estructura del Proyecto](#-estructura-del-proyecto)
-- [Tecnologías Utilizadas](#-tecnologías-utilizadas)
-- [Requisitos Previos](#-requisitos-previos)
-- [Instalación y Puesta en Marcha](#-instalación-y-puesta-en-marcha)
-- [Pruebas Automatizadas](#-pruebas-automatizadas)
-- [Diseño y Tokens de Figma](#-diseño-y-tokens-de-figma)
+Aplicacion movil cliente para la gestion de articulos farmaceuticos, pedidos, recetas medicas y catalogo de productos. Desarrollada en Flutter para el curso Taller de Aplicaciones Moviles, como parte de una solucion arquitectonica distribuida con backend en Spring Boot y persistencia en MySQL.
 
 ---
 
-## 🏛️ Arquitectura del Sistema
+## Indice
+- [Arquitectura del Sistema](#arquitectura-del-sistema)
+- [Funcionalidades y Pantallas Implementadas](#funcionalidades-y-pantallas-implementadas)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Tecnologias Utilizadas](#tecnologias-utilizadas)
+- [Requisitos Previos](#requisitos-previos)
+- [Instalacion y Puesta en Marcha](#instalacion-y-puesta-en-marcha)
+- [Pruebas Automatizadas](#pruebas-automatizadas)
+- [Diseno y Tokens de Figma](#diseno-y-tokens-de-figma)
 
-La solución general sigue una **arquitectura distribuida** compuesta por dos nodos principales:
+---
 
-1. **Nodo Cliente (Móvil)**:
-   - Aplicación desarrollada en **Flutter (Dart)** multiplataforma (Android e iOS).
-   - Consume la API REST del backend mediante intercambio de datos en formato **JSON**.
-   - Soporta autenticación basada en **JWT** (`Authorization: Bearer <token>`).
-   - Preparada para incorporar caché local offline (SQLite / Hive) para consulta del historial de compras sin conexión.
+## Arquitectura del Sistema
 
-2. **Nodo Servidor (Backend)**:
-   - Servidor externo con **Spring Boot**, **Spring Data JPA** y **Hibernate**.
-   - Base de datos relacional **MySQL** corriendo en un contenedor **Docker**.
+La solucion general sigue una arquitectura distribuida compuesta por dos nodos principales:
+
+1. Nodo Cliente (Movil):
+   - Aplicacion desarrollada en Flutter (Dart) multiplataforma (Android e iOS).
+   - Consume la API REST del backend mediante intercambio de datos en formato JSON.
+   - Soporta autenticacion basada en JWT (header Authorization: Bearer token).
+   - Preparada para incorporar cache local offline (SQLite o Hive) para consulta del historial de compras sin conexion.
+
+2. Nodo Servidor (Backend):
+   - Servidor externo con Spring Boot, Spring Data JPA e Hibernate.
+   - Base de datos relacional MySQL ejecutandose en un contenedor Docker.
    - Endpoints organizados por casos de uso para clientes y administradores.
 
 ---
 
-## 📱 Funcionalidades y Pantallas Implementadas
+## Funcionalidades y Pantallas Implementadas
 
-### 1. Iniciar Sesión (`UC-02 · LoginScreen`)
-- Formulario de autenticación con validación reactiva de correo y contraseña.
-- Alternador de visibilidad de contraseña (mostrar/ocultar).
-- Manejo de estados de carga con indicador circular y notificaciones mediante `SnackBar`.
-- Integración con el endpoint `POST /api/auth/login`.
-- Acceso directo a la creación de cuenta nueva.
+### 1. Iniciar Sesion (UC-02 - LoginScreen)
+- Formulario de autenticacion con validacion reactiva de correo y contrasena.
+- Alternador de visibilidad de contrasena (mostrar u ocultar).
+- Manejo de estados de carga con indicador circular y notificaciones mediante SnackBar.
+- Integracion con el endpoint POST /api/auth/login.
+- Acceso directo a la creacion de cuenta nueva.
 
-### 2. Crear Cuenta (`UC-01 · RegisterScreen`)
-- Formulario completo para registrarse como cliente (`rol: CLIENTE`):
+### 2. Crear Cuenta (UC-01 - RegisterScreen)
+- Formulario completo para registrarse como cliente (rol: CLIENTE):
   - Nombre y apellido (campos obligatorios).
-  - Correo electrónico con validación de sintaxis.
-  - Contraseña y confirmación de contraseña con verificación de coincidencia.
-- Botón de retroceso y enlace rápido a iniciar sesión.
-- Integración con el endpoint `POST /api/auth/register`.
+  - Correo electronico con validacion de sintaxis.
+  - Contrasena y confirmacion de contrasena con verificacion de coincidencia.
+- Boton de retroceso y enlace rapido a iniciar sesion.
+- Integracion con el endpoint POST /api/auth/register.
 
-### 3. Catálogo de Productos (`UC-04 · CatalogScreen`)
-- Cabecera institucional con isotipo de marca y acceso directo al carrito con **contador dinámico (badge)**.
-- **Buscador en vivo**: Filtrado instantáneo por nombre o descripción mientras el usuario escribe.
-- **Filtros por categoría**: Chips horizontales interactivos (*Todos*, *Medicamentos*, *Vitaminas*, *Cuidado Personal*).
-- **Grilla responsiva**: Tarjetas de productos con imagen, título, precio teal, indicador de stock (verde/rojo) y botón de añadir al carrito.
-- **Soporte offline / fallback**: Si el backend no está disponible, la app inicializa con catálogo demostrativo fiel al diseño de Figma.
-- **Barra de navegación inferior**: Acceso a *Inicio*, *Catálogo*, *Carrito*, *Historial* y *Perfil*.
+### 3. Catalogo de Productos (UC-04 - CatalogScreen)
+- Cabecera institucional con isotipo de marca y acceso directo al carrito con contador dinamico (badge).
+- Buscador en vivo: Filtrado instantaneo por nombre o descripcion mientras el usuario escribe.
+- Filtros por categoria: Chips horizontales interactivos (Todos, Medicamentos, Vitaminas, Cuidado Personal).
+- Grilla responsiva: Tarjetas de productos con imagen, titulo, precio, indicador de stock (verde para disponible, rojo para agotado) y boton de anadir al carrito.
+- Soporte offline y fallback: Si el backend no esta disponible, la aplicacion inicializa con catalogo demostrativo fiel al diseno de Figma.
+- Barra de navegacion inferior: Acceso a Inicio, Catalogo, Carrito, Historial y Perfil.
 
 ---
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
-El código está organizado siguiendo un enfoque **Feature-First / Clean Architecture simplificada** para facilitar el mantenimiento y escalabilidad:
+El codigo esta organizado siguiendo un enfoque Feature-First / Clean Architecture simplificada para facilitar el mantenimiento y escalabilidad:
 
 ```text
 farmayopin/
 ├── lib/
-│   ├── main.dart                          # Punto de entrada de la aplicación
+│   ├── main.dart                          # Punto de entrada de la aplicacion
 │   ├── core/                              # Componentes transversales
 │   │   ├── constants/
 │   │   │   └── api_constants.dart         # URLs base y rutas de endpoints
@@ -76,15 +76,15 @@ farmayopin/
 │   │   │   └── app_theme.dart             # Tema global (ThemeData, Inter font)
 │   │   └── utils/
 │   │       └── validators.dart            # Validaciones de formularios
-│   └── features/                          # Módulos por caso de uso
-│       ├── auth/                          # Módulo de Autenticación
+│   └── features/                          # Modulos por caso de uso
+│       ├── auth/                          # Modulo de Autenticacion
 │       │   ├── data/
 │       │   │   ├── models/                # DTOs (login_request, register_request, auth_response)
 │       │   │   └── services/              # AuthService (llamadas HTTP /api/auth/*)
 │       │   └── presentation/
 │       │       ├── screens/               # login_screen.dart, register_screen.dart
 │       │       └── widgets/               # brand_logo.dart, custom_text_field.dart
-│       └── catalog/                       # Módulo de Catálogo
+│       └── catalog/                       # Modulo de Catalogo
 │           ├── data/
 │           │   ├── models/                # product_model.dart
 │           │   └── services/              # catalog_service.dart (/api/productos)
@@ -93,81 +93,81 @@ farmayopin/
 │               └── widgets/               # product_card.dart, category_chip.dart
 └── test/                                  # Suite de pruebas unitarias y de widgets
     ├── unit/                              # Tests de validadores y DTOs
-    └── features/                          # Tests de widgets de Auth y Catálogo
+    └── features/                          # Tests de widgets de Auth y Catalogo
 ```
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## Tecnologias Utilizadas
 
-- **Framework**: [Flutter](https://flutter.dev/) (v3.47.2 / Dart 3.13.2)
-- **Tipografía**: [Google Fonts (Inter)](https://pub.dev/packages/google_fonts)
-- **Networking**: [http](https://pub.dev/packages/http)
-- **Diseño**: Figma to Code adaptado a widgets responsivos nativos
-- **Linter & Análisis**: `flutter_lints`
+- Framework: Flutter (v3.47.2 / Dart 3.13.2)
+- Tipografia: Google Fonts (Inter)
+- Networking: http
+- Diseno: Figma to Code adaptado a widgets responsivos nativos
+- Linter y Analisis: flutter_lints
 
 ---
 
-## ⚡ Requisitos Previos
+## Requisitos Previos
 
-1. Tener instalado el **Flutter SDK** (versión stable recomendada).
+1. Tener instalado el Flutter SDK (version stable recomendada).
 2. Tener configurado un emulador Android, simulador iOS o navegador Google Chrome.
-3. *(Opcional)* Para interactuar con datos en tiempo real, tener levantado el backend Spring Boot (`farma-yopin-api`) con su base de datos MySQL en Docker en `http://localhost:8080`.
+3. (Opcional) Para interactuar con datos en tiempo real, tener levantado el backend Spring Boot (farma-yopin-api) con su base de datos MySQL en Docker en http://localhost:8080.
 
 ---
 
-## 🚀 Instalación y Puesta en Marcha
+## Instalacion y Puesta en Marcha
 
-1. **Abrir la carpeta del proyecto**:
+1. Abrir la carpeta del proyecto:
    ```bash
    cd farmayopin
    ```
 
-2. **Descargar las dependencias**:
+2. Descargar las dependencias:
    ```bash
    flutter pub get
    ```
 
-3. **Ejecutar la aplicación**:
-   - En **Google Chrome** (modo web rápido):
+3. Ejecutar la aplicacion:
+   - En Google Chrome (modo web rapido):
      ```bash
      flutter run -d chrome
      ```
-   - En **Emulador Android**:
+   - En Emulador Android:
      ```bash
      flutter run
      ```
-     *(Nota: La URL base de la API se ajusta automáticamente a `http://10.0.2.2:8080` cuando se ejecuta en Android).*
+     (Nota: La URL base de la API se ajusta automaticamente a http://10.0.2.2:8080 cuando se ejecuta en Android).
 
 ---
 
-## 🧪 Pruebas Automatizadas
+## Pruebas Automatizadas
 
-El proyecto incluye tests unitarios de modelos/validadores y pruebas de widgets con interacción de usuario:
+El proyecto incluye tests unitarios de modelos/validadores y pruebas de widgets con interaccion de usuario:
 
-- **Análisis estático de código**:
+- Analisis estatico de codigo:
   ```bash
   dart analyze
   ```
-  *(Resultado actual: 0 advertencias o errores).*
+  (Resultado actual: 0 advertencias o errores).
 
-- **Ejecución de la suite de pruebas**:
+- Ejecucion de la suite de pruebas:
   ```bash
   flutter test
   ```
-  *(Resultado actual: 15/15 tests pasando).*
+  (Resultado actual: 15/15 tests pasando).
 
 ---
 
-## 🎨 Diseño y Tokens de Figma
+## Diseno y Tokens de Figma
 
-La interfaz respeta los tokens del diseño original de Figma:
+La interfaz respeta los tokens del diseno original de Figma:
 
 | Token | Hex / Valor | Uso principal |
 | :--- | :--- | :--- |
-| **Primary** | `#0D9488` (Teal) | Botones de acción, 'Y' en logo, acentos y badge |
-| **Text Dark** | `#1F2937` | Títulos principales, encabezados y textos destacados |
-| **Text Muted** | `#6B7280` | Subtítulos descriptivos, labels secundarios y placeholders |
-| **Borders** | `#E5E7EB` | Bordes de inputs, tarjetas y separadores |
-| **Accent Link** | `#0284C7` | Enlaces interactivos |
-| **Radius** | `12px` / `14px` / `16px` | Inputs, botones principales y tarjetas |
+| Primary | #0D9488 (Teal) | Botones de accion, 'Y' en logo, acentos y badge |
+| Text Dark | #1F2937 | Titulos principales, encabezados y textos destacados |
+| Text Muted | #6B7280 | Subtitulos descriptivos, labels secundarios y placeholders |
+| Borders | #E5E7EB | Bordes de inputs, tarjetas y separadores |
+| Accent Link | #0284C7 | Enlaces interactivos |
+| Radius | 12px / 14px / 16px | Inputs, botones principales y tarjetas |
