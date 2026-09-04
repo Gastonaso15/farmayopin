@@ -7,6 +7,7 @@ import '../../data/services/auth_service.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/custom_text_field.dart';
 import 'register_screen.dart';
+import '../../../catalog/presentation/screens/catalog_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
@@ -74,9 +75,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      // Aquí se navegará a la pantalla principal según el rol:
-      // if (response.rol == UserRole.admin) -> pantalla admin
-      // else -> catálogo / pantalla cliente
+      // Redirigir al Catálogo
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => CatalogScreen(token: response.token),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
 
