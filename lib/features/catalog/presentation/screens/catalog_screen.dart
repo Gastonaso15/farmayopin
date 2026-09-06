@@ -5,6 +5,7 @@ import '../../data/models/product_model.dart';
 import '../../data/services/catalog_service.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/product_card.dart';
+import 'create_product_screen.dart';
 
 class CatalogScreen extends StatefulWidget {
   final CatalogService? catalogService;
@@ -129,7 +130,26 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const BrandLogo(iconSize: 32, fontSize: 22),
-                  _buildCartButton(),
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Crear Producto',
+                        icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary, size: 26),
+                        onPressed: () async {
+                          final newProduct = await Navigator.of(context).push<ProductModel>(
+                            MaterialPageRoute(
+                              builder: (_) => CreateProductScreen(token: widget.token),
+                            ),
+                          );
+                          if (newProduct != null) {
+                            _loadProducts();
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 4),
+                      _buildCartButton(),
+                    ],
+                  ),
                 ],
               ),
             ),

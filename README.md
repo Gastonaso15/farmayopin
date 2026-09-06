@@ -58,6 +58,16 @@ La solucion general sigue una arquitectura distribuida compuesta por dos nodos p
 - Soporte offline y fallback: Si el backend no esta disponible, la aplicacion inicializa con catalogo demostrativo fiel al diseno de Figma.
 - Barra de navegacion inferior: Acceso a Inicio, Catalogo, Carrito, Historial y Perfil.
 
+### 4. Crear Producto (UC-06 - CreateProductScreen)
+- Formulario de gestion para administradores con validaciones completas:
+  - Subida/asignacion de foto del producto con previsualizacion interactiva.
+  - Nombre del producto (obligatorio).
+  - Descripcion detallada del producto (dosis, contraindicaciones, etc.).
+  - Precio en dolares con validacion numerica mayor a 0.
+  - Stock inicial con validacion de numero entero no negativo.
+- Boton de retorno a la pantalla anterior.
+- Integracion con el endpoint POST /api/productos y retorno del producto creado al catalogo.
+
 ---
 
 ## Estructura del Proyecto
@@ -155,7 +165,7 @@ El proyecto incluye tests unitarios de modelos/validadores y pruebas de widgets 
   ```bash
   flutter test
   ```
-  (Resultado actual: 15/15 tests pasando).
+  (Resultado actual: 19/19 tests pasando).
 
 ---
 

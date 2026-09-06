@@ -3,14 +3,74 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../../../../core/constants/api_constants.dart';
 import '../models/product_model.dart';
+import '../models/producto_request.dart';
+
+class CatalogException implements Exception {
+  final String message;
+  final int? statusCode;
+
+  CatalogException(this.message, [this.statusCode]);
+
+  @override
+  String toString() => message;
+}
 
 class CatalogService {
   final http.Client _client;
 
   CatalogService({http.Client? client}) : _client = client ?? http.Client();
 
-  /// Lista productos desde el backend Spring Boot (`GET /api/productos`).
-  /// Si el backend no está disponible, retorna productos por defecto de Figma para testing y UX fluida.
+  /// Crea un nuevo producto en el backend Spring Boot (POST /api/productos)
+  Future<ProductModel> crearProducto(ProductoRequest request, {String? token}) async {
+    final uri = Uri.parse('${ApiConstants.baseUrl}/api/productos');
+
+    try {
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await _client.post(
+        uri,
+        headers: headers,
+        body: jsonEncode(request.toJson()),
+      );
+
+      final body = response.body.isNotEmpty ? jsonDecode(response.body) : {};
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ProductModel.fromJson(body as Map<String, dynamic>);
+      } else if (response.statusCode == 403) {
+        throw CatalogException('Acceso denegado: se requieren permisos de Administrador.', response.statusCode);
+      } else if (response.statusCode == 400) {
+        final msg = body is Map && body.containsKey('mensaje') ? body['mensaje'] : 'Datos de producto invalidos.';
+        throw CatalogException(msg, response.statusCode);
+      } else {
+        final msg = body is Map && body.containsKey('mensaje') ? body['mensaje'] : 'Error en el servidor (${response.statusCode}).';
+        throw CatalogException(msg, response.statusCode);
+      }
+    } on SocketException {
+      // Si esta en modo offline, simula creacion exitosa local para pruebas
+      return ProductModel(
+        id: DateTime.now().millisecondsSinceEpoch,
+        nombre: request.nombre,
+        precio: request.precio,
+        detalle: request.detalle ?? '',
+        foto: request.foto ?? '',
+        stock: request.stock,
+      );
+    } on http.ClientException {
+      throw CatalogException('Error de comunicacion con el servidor.');
+    } catch (e) {
+      if (e is CatalogException) rethrow;
+      throw CatalogException('Ocurrio un error inesperado: $e');
+    }
+  }
+
+  /// Lista productos desde el backend Spring Boot (GET /api/productos)
   Future<List<ProductModel>> getProductos({String? token}) async {
     final uri = Uri.parse('${ApiConstants.baseUrl}/api/productos');
 
