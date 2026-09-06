@@ -68,6 +68,20 @@ La solucion general sigue una arquitectura distribuida compuesta por dos nodos p
 - Boton de retorno a la pantalla anterior.
 - Integracion con el endpoint POST /api/productos y retorno del producto creado al catalogo.
 
+### 5. Ver Detalle del Producto (UC-05 - ProductDetailScreen)
+- Pantalla de visualizacion detallada del articulo seleccionado desde el catalogo:
+  - Barra superior con boton de retroceso a la pantalla previa.
+  - Fotografia destacada del producto con bordes redondeados (radio 20px) y fallback visual en caso de fallo de red.
+  - Nombre y categoria del producto con etiqueta en badge neutro.
+  - Precio en tipografia de alto impacto (color Teal primario #0D9488, 28px).
+  - Indicador de stock reactivo en banner destacado:
+    - Verde (#DCFCE7 / #16A34A) cuando hay unidades disponibles.
+    - Rojo (#FEE2E2 / #DC2626) en caso de producto agotado.
+  - Descripcion detallada del producto (propiedades farmacologicas, beneficios, posologia).
+  - Botones de accion para gestion:
+    - 'Editar producto' (boton primario solido en color Teal).
+    - 'Ver historial de compras' (boton outline con borde Teal de 2px, vinculado a UC-08).
+
 ---
 
 ## Estructura del Proyecto
@@ -165,7 +179,7 @@ El proyecto incluye tests unitarios de modelos/validadores y pruebas de widgets 
   ```bash
   flutter test
   ```
-  (Resultado actual: 19/19 tests pasando).
+  (Resultado actual: 23/23 tests pasando).
 
 ---
 

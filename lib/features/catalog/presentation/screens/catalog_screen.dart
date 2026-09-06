@@ -6,6 +6,7 @@ import '../../data/services/catalog_service.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/product_card.dart';
 import 'create_product_screen.dart';
+import 'product_detail_screen.dart';
 
 class CatalogScreen extends StatefulWidget {
   final CatalogService? catalogService;
@@ -276,6 +277,16 @@ class _CatalogScreenState extends State<CatalogScreen> {
                               final product = _filteredProducts[index];
                               return ProductCard(
                                 product: product,
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => ProductDetailScreen(
+                                        product: product,
+                                        token: widget.token,
+                                      ),
+                                    ),
+                                  );
+                                },
                                 onAddToCart: () => _addToCart(product),
                               );
                             },

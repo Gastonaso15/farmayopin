@@ -5,37 +5,41 @@ import '../../data/models/product_model.dart';
 class ProductCard extends StatelessWidget {
   final ProductModel product;
   final VoidCallback onAddToCart;
+  final VoidCallback? onTap;
 
   const ProductCard({
     super.key,
     required this.product,
     required this.onAddToCart,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final hasStock = product.stock > 0;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.border,
-          width: 1,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 4),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppColors.border,
+            width: 1,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Imagen del producto con fallback
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -159,6 +163,7 @@ class ProductCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
