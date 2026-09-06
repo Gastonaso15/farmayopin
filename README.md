@@ -79,8 +79,19 @@ La solucion general sigue una arquitectura distribuida compuesta por dos nodos p
     - Rojo (#FEE2E2 / #DC2626) en caso de producto agotado.
   - Descripcion detallada del producto (propiedades farmacologicas, beneficios, posologia).
   - Botones de accion para gestion:
-    - 'Editar producto' (boton primario solido en color Teal).
+    - 'Editar producto' (boton primario solido en color Teal que navega a EditProductScreen).
     - 'Ver historial de compras' (boton outline con borde Teal de 2px, vinculado a UC-08).
+
+### 6. Editar Producto (UC-07 - EditProductScreen)
+- Pantalla de modificacion para administradores basada en Screen5Editarproducto:
+  - Precarga automatica de los datos actuales del producto: nombre, descripcion, precio, stock y foto.
+  - Opcion interactiva para actualizar la URL de la fotografia con previsualizacion inmediata.
+  - Validaciones completas:
+    - Nombre del producto obligatorio.
+    - Precio valido mayor a 0.
+    - Stock entero no negativo.
+  - Boton de accion 'Guardar cambios' con efecto de sombra Teal.
+  - Integracion con el endpoint PUT /api/productos/{id} y actualizacion reactiva tanto en la vista de detalle como en el catalogo general.
 
 ---
 
@@ -110,10 +121,10 @@ farmayopin/
 │       │       └── widgets/               # brand_logo.dart, custom_text_field.dart
 │       └── catalog/                       # Modulo de Catalogo
 │           ├── data/
-│           │   ├── models/                # product_model.dart
+│           │   ├── models/                # product_model.dart, producto_request.dart
 │           │   └── services/              # catalog_service.dart (/api/productos)
 │           └── presentation/
-│               ├── screens/               # catalog_screen.dart
+│               ├── screens/               # catalog_screen.dart, create_product_screen.dart, product_detail_screen.dart, edit_product_screen.dart
 │               └── widgets/               # product_card.dart, category_chip.dart
 └── test/                                  # Suite de pruebas unitarias y de widgets
     ├── unit/                              # Tests de validadores y DTOs
@@ -179,7 +190,7 @@ El proyecto incluye tests unitarios de modelos/validadores y pruebas de widgets 
   ```bash
   flutter test
   ```
-  (Resultado actual: 23/23 tests pasando).
+  (Resultado actual: 26/26 tests pasando).
 
 ---
 

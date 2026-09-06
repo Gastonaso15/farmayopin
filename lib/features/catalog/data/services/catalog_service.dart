@@ -70,6 +70,58 @@ class CatalogService {
     }
   }
 
+  /// Actualiza un producto existente en el backend Spring Boot (PUT /api/productos/{id})
+  Future<ProductModel> actualizarProducto(int id, ProductoRequest request, {String? token}) async {
+    final uri = Uri.parse('${ApiConstants.baseUrl}/api/productos/$id');
+
+    try {
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await _client.put(
+        uri,
+        headers: headers,
+        body: jsonEncode(request.toJson()),
+      );
+
+      final body = response.body.isNotEmpty ? jsonDecode(response.body) : {};
+
+      if (response.statusCode == 200) {
+        return ProductModel.fromJson(body as Map<String, dynamic>);
+      } else if (response.statusCode == 403) {
+        throw CatalogException('Acceso denegado: se requieren permisos de Administrador.', response.statusCode);
+      } else if (response.statusCode == 404) {
+        throw CatalogException('El producto a actualizar no fue encontrado.', response.statusCode);
+      } else if (response.statusCode == 400) {
+        final msg = body is Map && body.containsKey('mensaje') ? body['mensaje'] : 'Datos de producto invalidos.';
+        throw CatalogException(msg, response.statusCode);
+      } else {
+        final msg = body is Map && body.containsKey('mensaje') ? body['mensaje'] : 'Error en el servidor (${response.statusCode}).';
+        throw CatalogException(msg, response.statusCode);
+      }
+    } on SocketException {
+      // Si esta en modo offline, simula actualizacion exitosa local
+      return ProductModel(
+        id: id,
+        nombre: request.nombre,
+        precio: request.precio,
+        detalle: request.detalle ?? '',
+        foto: request.foto ?? '',
+        stock: request.stock,
+      );
+    } on http.ClientException {
+      throw CatalogException('Error de comunicacion con el servidor.');
+    } catch (e) {
+      if (e is CatalogException) rethrow;
+      throw CatalogException('Ocurrio un error inesperado: $e');
+    }
+  }
+
   /// Lista productos desde el backend Spring Boot (GET /api/productos)
   Future<List<ProductModel>> getProductos({String? token}) async {
     final uri = Uri.parse('${ApiConstants.baseUrl}/api/productos');

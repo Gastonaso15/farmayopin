@@ -277,8 +277,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                               final product = _filteredProducts[index];
                               return ProductCard(
                                 product: product,
-                                onTap: () {
-                                  Navigator.of(context).push(
+                                onTap: () async {
+                                  final updated = await Navigator.of(context).push<ProductModel>(
                                     MaterialPageRoute(
                                       builder: (_) => ProductDetailScreen(
                                         product: product,
@@ -286,6 +286,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                       ),
                                     ),
                                   );
+                                  if (updated != null) {
+                                    _loadProducts();
+                                  }
                                 },
                                 onAddToCart: () => _addToCart(product),
                               );

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/product_model.dart';
+import 'edit_product_screen.dart';
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
   final String? token;
   final VoidCallback? onEdit;
@@ -17,15 +18,50 @@ class ProductDetailScreen extends StatelessWidget {
   });
 
   @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  late ProductModel _product;
+
+  @override
+  void initState() {
+    super.initState();
+    _product = widget.product;
+  }
+
+  Future<void> _handleEditNavigation(BuildContext context) async {
+    if (widget.onEdit != null) {
+      widget.onEdit!();
+      return;
+    }
+
+    final updated = await Navigator.of(context).push<ProductModel>(
+      MaterialPageRoute(
+        builder: (_) => EditProductScreen(
+          product: _product,
+          token: widget.token,
+        ),
+      ),
+    );
+
+    if (updated != null && mounted) {
+      setState(() {
+        _product = updated;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final hasStock = product.stock > 0;
+    final hasStock = _product.stock > 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
         child: Column(
           children: [
-            // Barra de Navegación Superior
+            // Barra de Navegacion Superior
             Container(
               height: 56,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -41,7 +77,7 @@ class ProductDetailScreen extends StatelessWidget {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
+                    onTap: () => Navigator.of(context).pop(_product),
                     child: Container(
                       width: 40,
                       height: 40,
@@ -97,9 +133,9 @@ class ProductDetailScreen extends StatelessWidget {
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: product.foto.isNotEmpty
+                      child: _product.foto.isNotEmpty
                           ? Image.network(
-                              product.foto,
+                              _product.foto,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
                             )
@@ -107,12 +143,12 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // Título y Categoría
+                    // Titulo y Categoria
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          product.nombre,
+                          _product.nombre,
                           style: const TextStyle(
                             color: AppColors.textDark,
                             fontSize: 22,
@@ -131,7 +167,7 @@ class ProductDetailScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            product.categoria,
+                            _product.categoria,
                             style: const TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 11,
@@ -145,7 +181,7 @@ class ProductDetailScreen extends StatelessWidget {
 
                     // Precio
                     Text(
-                      '\$${product.precio.toStringAsFixed(2)}',
+                      '\$${_product.precio.toStringAsFixed(2)}',
                       style: const TextStyle(
                         color: AppColors.primary,
                         fontSize: 28,
@@ -165,7 +201,7 @@ class ProductDetailScreen extends StatelessWidget {
                       child: Center(
                         child: Text(
                           hasStock
-                              ? 'Stock disponible: ${product.stock} unidades'
+                              ? 'Stock disponible: ${_product.stock} unidades'
                               : 'Producto sin stock disponible',
                           style: TextStyle(
                             color: hasStock ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
@@ -177,10 +213,10 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Descripción / Detalle
+                    // Descripcion / Detalle
                     Text(
-                      product.detalle.isNotEmpty
-                          ? product.detalle
+                      _product.detalle.isNotEmpty
+                          ? _product.detalle
                           : 'Sin descripcion detallada disponible.',
                       style: const TextStyle(
                         color: AppColors.textMuted,
@@ -191,13 +227,13 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 28),
 
-                    // Botones de Acción
-                    // 1. Botón Editar Producto (Primario)
+                    // Botones de Accion
+                    // 1. Boton Editar Producto (Primario)
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton.icon(
-                        onPressed: onEdit ?? () => _showComingSoonSnackBar(context, 'Edicion de producto proximamente.'),
+                        onPressed: () => _handleEditNavigation(context),
                         icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.white),
                         label: const Text(
                           'Editar producto',
@@ -218,12 +254,12 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // 2. Botón Ver historial de compras (Outlined)
+                    // 2. Boton Ver historial de compras (Outlined)
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: OutlinedButton.icon(
-                        onPressed: onViewPurchaseHistory ?? () => _showComingSoonSnackBar(context, 'Historial de compras proximamente (UC-08).'),
+                        onPressed: widget.onViewPurchaseHistory ?? () => _showComingSoonSnackBar(context, 'Historial de compras proximamente (UC-08).'),
                         icon: const Icon(Icons.history_rounded, size: 20, color: AppColors.primary),
                         label: const Text(
                           'Ver historial de compras',
