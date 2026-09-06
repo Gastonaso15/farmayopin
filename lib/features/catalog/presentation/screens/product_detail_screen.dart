@@ -133,9 +133,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: _product.foto.isNotEmpty
+                      child: _product.imagenUrl.isNotEmpty
                           ? Image.network(
-                              _product.foto,
+                              _product.imagenUrl,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
                             )

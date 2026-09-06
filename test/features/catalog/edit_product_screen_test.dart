@@ -114,5 +114,16 @@ void main() {
       expect(mockService.lastUpdated!.precio, 15.50);
       expect(mockService.lastUpdated!.stock, 35);
     });
+
+    testWidgets('Muestra la opcion para cargar imagen desde almacenamiento interno', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(createTestWidget(product: initialProduct));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cargar desde almacenamiento interno'), findsOneWidget);
+    });
   });
 }

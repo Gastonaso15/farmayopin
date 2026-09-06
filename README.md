@@ -85,7 +85,9 @@ La solucion general sigue una arquitectura distribuida compuesta por dos nodos p
 ### 6. Editar Producto (UC-07 - EditProductScreen)
 - Pantalla de modificacion para administradores basada en Screen5Editarproducto:
   - Precarga automatica de los datos actuales del producto: nombre, descripcion, precio, stock y foto.
-  - Opcion interactiva para actualizar la URL de la fotografia con previsualizacion inmediata.
+  - Carga de imagen dual:
+    - Opcion de seleccion directa desde el almacenamiento interno del dispositivo (galeria / explorador de archivos) con conversion base64 y previsualizacion inmediata en memoria.
+    - Opcion de ingreso de enlace web (URL).
   - Validaciones completas:
     - Nombre del producto obligatorio.
     - Precio valido mayor a 0.
@@ -190,7 +192,7 @@ El proyecto incluye tests unitarios de modelos/validadores y pruebas de widgets 
   ```bash
   flutter test
   ```
-  (Resultado actual: 26/26 tests pasando).
+  (Resultado actual: 27/27 tests pasando).
 
 ---
 

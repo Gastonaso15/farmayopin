@@ -48,7 +48,7 @@ class ProductCard extends StatelessWidget {
               height: 100,
               color: const Color(0xFFF3F4F6),
               child: Image.network(
-                product.foto,
+                product.imagenUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return const Center(
