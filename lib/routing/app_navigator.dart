@@ -15,6 +15,9 @@ import '../features/catalog/presentation/screens/manage_products_screen.dart';
 import '../features/catalog/presentation/screens/product_detail_admin_screen.dart';
 import '../features/catalog/presentation/screens/product_detail_client_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
+import '../data/models/compra_model.dart';
+import '../features/compras/presentation/screens/detalle_compra_screen.dart';
+import '../features/compras/presentation/screens/historial_compras_screen.dart';
 
 class AppNavigator {
   AppNavigator._();
@@ -95,6 +98,26 @@ class AppNavigator {
       MaterialPageRoute(
         builder: (_) =>
             ProfileScreen(token: token, nombre: nombre, email: email),
+      ),
+    );
+  }
+
+  static Future<void> toHistorial(BuildContext context, {String? token}) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HistorialComprasScreen(token: token),
+      ),
+    );
+  }
+
+  static Future<void> toDetalleCompra(
+    BuildContext context, {
+    required CompraModel compra,
+    String? token,
+  }) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DetalleCompraScreen(compra: compra, token: token),
       ),
     );
   }

@@ -72,6 +72,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
     }
   }
 
+  Future<void> _openHistorial() async {
+    await AppNavigator.toHistorial(context, token: widget.token);
+    _refreshCartCount();
+  }
+
   Future<void> _openProfile() async {
     await AppNavigator.toProfile(
       context,
@@ -363,6 +368,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
         onTap: (index) {
           if (index == 2) {
             _openCart();
+          } else if (index == 3) {
+            _openHistorial();
           } else if (index == 4) {
             _openProfile();
           } else {
