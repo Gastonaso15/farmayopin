@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../data/models/auth_response.dart';
@@ -7,15 +8,13 @@ import '../../data/services/auth_service.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/custom_text_field.dart';
 import 'register_screen.dart';
+import '../../../admin/presentation/screens/admin_dashboard_screen.dart';
 import '../../../catalog/presentation/screens/catalog_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
 
-  const LoginScreen({
-    super.key,
-    this.authService,
-  });
+  const LoginScreen({super.key, this.authService});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -75,10 +74,14 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      // Redirigir al Catálogo
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => CatalogScreen(token: response.token),
+          builder: (_) => response.rol == UserRole.admin
+              ? AdminDashboardScreen(
+                  token: response.token,
+                  nombre: response.nombre,
+                )
+              : CatalogScreen(token: response.token),
         ),
       );
     } catch (e) {
@@ -189,7 +192,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Recuperación de contraseña próximamente.'),
+                              content: Text(
+                                'Recuperación de contraseña próximamente.',
+                              ),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
@@ -224,7 +229,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.7),
+                          disabledBackgroundColor: AppColors.primary.withValues(
+                            alpha: 0.7,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),

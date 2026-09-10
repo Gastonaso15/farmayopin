@@ -164,14 +164,7 @@ class _CartScreenState extends State<CartScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!_isLoading && _errorMessage == null && !_cart.isEmpty)
-              _buildCheckoutBar(),
-            _buildBottomNav(),
-          ],
-        ),
+        bottomNavigationBar: _buildBottomNav(),
       ),
     );
   }
@@ -348,12 +341,19 @@ class _CartScreenState extends State<CartScreen> {
             ),
           ),
           if (!_cart.isEmpty)
-            Text(
-              '${_cart.cantidadUnidades} ${_cart.cantidadUnidades == 1 ? 'ítem' : 'ítems'}',
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F9FF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${_cart.items.length} ${_cart.items.length == 1 ? 'Item' : 'Items'}',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
         ],
@@ -376,11 +376,24 @@ class _CartScreenState extends State<CartScreen> {
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: _loadCart,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(24),
-        itemCount: _cart.items.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) => _buildCartItem(_cart.items[index]),
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        children: [
+          for (final item in _cart.items) ...[
+            _buildCartItem(item),
+            const SizedBox(height: 16),
+          ],
+          _buildSummary(),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: _goToConfirm,
+              child: const Text('Pagar carrito'),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -398,10 +411,9 @@ class _CartScreenState extends State<CartScreen> {
           border: Border.all(color: AppColors.border, width: 1),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               child: Container(
                 width: 64,
                 height: 64,
@@ -421,59 +433,46 @@ class _CartScreenState extends State<CartScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.nombreProducto,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textDark,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            height: 1.2,
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: isBusy ? null : () => _removeItem(item),
-                        child: const Padding(
-                          padding: EdgeInsets.only(left: 8),
-                          child: Icon(
-                            Icons.delete_outline_rounded,
-                            size: 20,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
                   Text(
-                    '\$${item.precioUnitario.toStringAsFixed(2)} c/u',
+                    item.nombreProducto,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 12,
+                      color: AppColors.textDark,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildQuantityStepper(item, isBusy),
-                      Text(
-                        '\$${item.subtotal.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 6),
+                  Text(
+                    '\$${item.precioUnitario.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
+                  const SizedBox(height: 6),
+                  _buildQuantityStepper(item, isBusy),
                 ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: isBusy ? null : () => _removeItem(item),
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.delete_outline_rounded,
+                  size: 16,
+                  color: AppColors.error,
+                ),
               ),
             ),
           ],
@@ -483,52 +482,44 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildQuantityStepper(CartItemModel item, bool isBusy) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.border, width: 1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _stepperButton(
-            icon: Icons.remove_rounded,
-            onTap: isBusy
-                ? null
-                : () => _updateQuantity(item, item.cantidad - 1),
+    return Row(
+      children: [
+        _stepperButton(
+          icon: Icons.remove_rounded,
+          onTap: isBusy ? null : () => _updateQuantity(item, item.cantidad - 1),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          '${item.cantidad}',
+          style: const TextStyle(
+            color: AppColors.textDark,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
           ),
-          Container(
-            constraints: const BoxConstraints(minWidth: 32),
-            alignment: Alignment.center,
-            child: Text(
-              '${item.cantidad}',
-              style: const TextStyle(
-                color: AppColors.textDark,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          _stepperButton(
-            icon: Icons.add_rounded,
-            onTap: isBusy
-                ? null
-                : () => _updateQuantity(item, item.cantidad + 1),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        _stepperButton(
+          icon: Icons.add_rounded,
+          onTap: isBusy ? null : () => _updateQuantity(item, item.cantidad + 1),
+        ),
+      ],
     );
   }
 
   Widget _stepperButton({required IconData icon, VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
-      child: SizedBox(
-        width: 32,
-        height: 32,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(6),
+        ),
         child: Icon(
           icon,
-          size: 16,
+          size: 14,
           color: onTap == null ? AppColors.textSubtle : AppColors.textDark,
         ),
       ),
@@ -673,48 +664,76 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCheckoutBar() {
+  Widget _buildSummary() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
+          _buildSummaryRow(
+            'Subtotal',
+            '\$${_cart.total.toStringAsFixed(2)}',
+            valueColor: AppColors.textDark,
+          ),
+          const SizedBox(height: 12),
+          _buildSummaryRow('Envío', 'Gratis', valueColor: AppColors.success),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: AppColors.border),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 'Total',
                 style: TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               Text(
                 '\$${_cart.total.toStringAsFixed(2)}',
                 style: const TextStyle(
-                  color: AppColors.textDark,
+                  color: AppColors.primary,
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _goToConfirm,
-              child: const Text('Pagar carrito'),
-            ),
-          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSummaryRow(
+    String label,
+    String value, {
+    required Color valueColor,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: valueColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }

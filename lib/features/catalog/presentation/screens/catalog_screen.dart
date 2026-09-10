@@ -10,7 +10,7 @@ import '../../data/services/catalog_service.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/product_card.dart';
 import 'create_product_screen.dart';
-import 'product_detail_screen.dart';
+import 'product_detail_client_screen.dart';
 
 class CatalogScreen extends StatefulWidget {
   final CatalogService? catalogService;
@@ -330,18 +330,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           return ProductCard(
                             product: product,
                             onTap: () async {
-                              final updated = await Navigator.of(context)
-                                  .push<ProductModel>(
-                                    MaterialPageRoute(
-                                      builder: (_) => ProductDetailScreen(
-                                        product: product,
-                                        token: widget.token,
-                                      ),
-                                    ),
-                                  );
-                              if (updated != null) {
-                                _loadProducts();
-                              }
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => ProductDetailClientScreen(
+                                    product: product,
+                                    token: widget.token,
+                                  ),
+                                ),
+                              );
+                              _refreshCartCount();
                             },
                             onAddToCart: () => _addToCart(product),
                           );
