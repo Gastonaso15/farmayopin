@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/widgets/brand_logo.dart';
+import '../../../cart/data/models/cart_model.dart';
+import '../../../cart/data/services/cart_service.dart';
+import '../../../cart/presentation/screens/cart_screen.dart';
 import '../../data/models/product_model.dart';
 import '../../data/services/catalog_service.dart';
 import '../widgets/category_chip.dart';
@@ -12,11 +16,7 @@ class CatalogScreen extends StatefulWidget {
   final CatalogService? catalogService;
   final String? token;
 
-  const CatalogScreen({
-    super.key,
-    this.catalogService,
-    this.token,
-  });
+  const CatalogScreen({super.key, this.catalogService, this.token});
 
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
@@ -24,13 +24,14 @@ class CatalogScreen extends StatefulWidget {
 
 class _CatalogScreenState extends State<CatalogScreen> {
   late final CatalogService _catalogService;
+  final CartService _cartService = CartService();
   final TextEditingController _searchController = TextEditingController();
 
   List<ProductModel> _allProducts = [];
   List<ProductModel> _filteredProducts = [];
   bool _isLoading = true;
   String _selectedCategory = 'Todos';
-  int _cartItemCount = 3;
+  int _cartItemCount = 0;
   int _selectedNavIndex = 1; // 1 = Catálogo
 
   final List<String> _categories = [
@@ -45,7 +46,26 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.initState();
     _catalogService = widget.catalogService ?? CatalogService();
     _loadProducts();
+    _refreshCartCount();
     _searchController.addListener(_applyFilters);
+  }
+
+  Future<void> _refreshCartCount() async {
+    try {
+      final cart = await _cartService.getCarrito(token: widget.token);
+      if (mounted) setState(() => _cartItemCount = cart.cantidadUnidades);
+    } on CartException catch (_) {}
+  }
+
+  Future<void> _openCart() async {
+    final cart = await Navigator.of(context).push<CartModel>(
+      MaterialPageRoute(builder: (_) => CartScreen(token: widget.token)),
+    );
+    if (cart != null && mounted) {
+      setState(() => _cartItemCount = cart.cantidadUnidades);
+    } else {
+      _refreshCartCount();
+    }
   }
 
   @override
@@ -75,9 +95,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
     setState(() {
       _filteredProducts = _allProducts.where((p) {
-        final matchesCategory = _selectedCategory == 'Todos' ||
+        final matchesCategory =
+            _selectedCategory == 'Todos' ||
             p.categoria.toLowerCase() == _selectedCategory.toLowerCase();
-        final matchesQuery = query.isEmpty ||
+        final matchesQuery =
+            query.isEmpty ||
             p.nombre.toLowerCase().contains(query) ||
             p.detalle.toLowerCase().contains(query);
         return matchesCategory && matchesQuery;
@@ -92,27 +114,41 @@ class _CatalogScreenState extends State<CatalogScreen> {
     });
   }
 
-  void _addToCart(ProductModel product) {
-    setState(() {
-      _cartItemCount++;
-    });
+  Future<void> _addToCart(ProductModel product) async {
+    try {
+      final cart = await _cartService.agregarItem(
+        productoId: product.id,
+        cantidad: 1,
+        token: widget.token,
+      );
+      if (!mounted) return;
+      setState(() => _cartItemCount = cart.cantidadUnidades);
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${product.nombre} agregado al carrito.'),
-        backgroundColor: AppColors.primary,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'Ver carrito',
-          textColor: Colors.white,
-          onPressed: () {
-            // Próximamente navegación al carrito (UC-09)
-          },
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${product.nombre} agregado al carrito.'),
+          backgroundColor: AppColors.primary,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Ver carrito',
+            textColor: Colors.white,
+            onPressed: _openCart,
+          ),
         ),
-      ),
-    );
+      );
+    } on CartException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -135,13 +171,19 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     children: [
                       IconButton(
                         tooltip: 'Crear Producto',
-                        icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary, size: 26),
+                        icon: const Icon(
+                          Icons.add_circle_outline_rounded,
+                          color: AppColors.primary,
+                          size: 26,
+                        ),
                         onPressed: () async {
-                          final newProduct = await Navigator.of(context).push<ProductModel>(
-                            MaterialPageRoute(
-                              builder: (_) => CreateProductScreen(token: widget.token),
-                            ),
-                          );
+                          final newProduct = await Navigator.of(context)
+                              .push<ProductModel>(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CreateProductScreen(token: widget.token),
+                                ),
+                              );
                           if (newProduct != null) {
                             _loadProducts();
                           }
@@ -198,7 +240,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     ),
                     if (_searchController.text.isNotEmpty)
                       IconButton(
-                        icon: const Icon(Icons.clear, size: 18, color: AppColors.textMuted),
+                        icon: const Icon(
+                          Icons.clear,
+                          size: 18,
+                          color: AppColors.textMuted,
+                        ),
                         onPressed: () => _searchController.clear(),
                       ),
                   ],
@@ -257,28 +303,35 @@ class _CatalogScreenState extends State<CatalogScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
                     )
                   : _filteredProducts.isEmpty
-                      ? _buildEmptyState()
-                      : RefreshIndicator(
-                          color: AppColors.primary,
-                          onRefresh: _loadProducts,
-                          child: GridView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  ? _buildEmptyState()
+                  : RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: _loadProducts,
+                      child: GridView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               childAspectRatio: 0.65,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: _filteredProducts.length,
-                            itemBuilder: (context, index) {
-                              final product = _filteredProducts[index];
-                              return ProductCard(
-                                product: product,
-                                onTap: () async {
-                                  final updated = await Navigator.of(context).push<ProductModel>(
+                        itemCount: _filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = _filteredProducts[index];
+                          return ProductCard(
+                            product: product,
+                            onTap: () async {
+                              final updated = await Navigator.of(context)
+                                  .push<ProductModel>(
                                     MaterialPageRoute(
                                       builder: (_) => ProductDetailScreen(
                                         product: product,
@@ -286,15 +339,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                       ),
                                     ),
                                   );
-                                  if (updated != null) {
-                                    _loadProducts();
-                                  }
-                                },
-                                onAddToCart: () => _addToCart(product),
-                              );
+                              if (updated != null) {
+                                _loadProducts();
+                              }
                             },
-                          ),
-                        ),
+                            onAddToCart: () => _addToCart(product),
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -305,14 +358,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   Widget _buildCartButton() {
     return GestureDetector(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Carrito de compras próximamente (UC-09).'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      },
+      onTap: _openCart,
       child: Container(
         width: 40,
         height: 40,
@@ -381,10 +427,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           const SizedBox(height: 4),
           const Text(
             'Prueba con otra búsqueda o categoría.',
-            style: TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
           ),
         ],
       ),
@@ -393,11 +436,31 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   Widget _buildBottomNav() {
     final items = [
-      {'icon': Icons.home_outlined, 'activeIcon': Icons.home_rounded, 'label': 'Inicio'},
-      {'icon': Icons.grid_view_outlined, 'activeIcon': Icons.grid_view_rounded, 'label': 'Catálogo'},
-      {'icon': Icons.shopping_cart_outlined, 'activeIcon': Icons.shopping_cart_rounded, 'label': 'Carrito'},
-      {'icon': Icons.receipt_long_outlined, 'activeIcon': Icons.receipt_long_rounded, 'label': 'Historial'},
-      {'icon': Icons.person_outline_rounded, 'activeIcon': Icons.person_rounded, 'label': 'Perfil'},
+      {
+        'icon': Icons.home_outlined,
+        'activeIcon': Icons.home_rounded,
+        'label': 'Inicio',
+      },
+      {
+        'icon': Icons.grid_view_outlined,
+        'activeIcon': Icons.grid_view_rounded,
+        'label': 'Catálogo',
+      },
+      {
+        'icon': Icons.shopping_cart_outlined,
+        'activeIcon': Icons.shopping_cart_rounded,
+        'label': 'Carrito',
+      },
+      {
+        'icon': Icons.receipt_long_outlined,
+        'activeIcon': Icons.receipt_long_rounded,
+        'label': 'Historial',
+      },
+      {
+        'icon': Icons.person_outline_rounded,
+        'activeIcon': Icons.person_rounded,
+        'label': 'Perfil',
+      },
     ];
 
     return SafeArea(
@@ -407,9 +470,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(
-            top: BorderSide(color: AppColors.border, width: 1),
-          ),
+          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -419,6 +480,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
             return InkWell(
               onTap: () {
+                if (index == 2) {
+                  _openCart();
+                  return;
+                }
                 setState(() {
                   _selectedNavIndex = index;
                 });
@@ -434,9 +499,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       clipBehavior: Clip.none,
                       children: [
                         Icon(
-                          isSelected ? (items[index]['activeIcon'] as IconData) : (items[index]['icon'] as IconData),
+                          isSelected
+                              ? (items[index]['activeIcon'] as IconData)
+                              : (items[index]['icon'] as IconData),
                           size: 22,
-                          color: isSelected ? AppColors.primary : AppColors.textMuted,
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.textMuted,
                         ),
                         if (isCart && _cartItemCount > 0)
                           Positioned(
@@ -467,9 +536,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     Text(
                       items[index]['label'] as String,
                       style: TextStyle(
-                        color: isSelected ? AppColors.primary : AppColors.textMuted,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.textMuted,
                         fontSize: 10,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
                       ),
                     ),
                   ],
