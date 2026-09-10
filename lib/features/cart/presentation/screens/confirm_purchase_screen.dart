@@ -5,7 +5,9 @@ import '../../../../core/widgets/app_screen_header.dart';
 import '../../../../core/widgets/client_bottom_nav.dart';
 import '../../../../data/models/cart_item_model.dart';
 import '../../../../data/models/cart_model.dart';
+import '../../../../data/models/compra_model.dart';
 import '../../../../data/services/cart_service.dart';
+import 'pago_exitoso_screen.dart';
 
 class ConfirmPurchaseScreen extends StatefulWidget {
   final CartModel cart;
@@ -38,76 +40,21 @@ class _ConfirmPurchaseScreenState extends State<ConfirmPurchaseScreen> {
 
     setState(() => _isProcessing = true);
     try {
-      final compra = await _cartService.pagarCarrito(token: widget.token);
+      final compraJson = await _cartService.pagarCarrito(token: widget.token);
       if (!mounted) return;
-      setState(() => _isProcessing = false);
-      await _showPaymentSuccess(compra);
-      if (mounted) Navigator.of(context).pop(true);
+      final compra = CompraModel.fromJson(compraJson);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) =>
+              PagoExitosoScreen(compra: compra, token: widget.token),
+        ),
+        result: true,
+      );
     } on CartException catch (e) {
       if (!mounted) return;
       setState(() => _isProcessing = false);
       _showSnack(e.message, isError: true);
     }
-  }
-
-  Future<void> _showPaymentSuccess(Map<String, dynamic> compra) {
-    final total = (compra['total'] as num?)?.toDouble();
-    final compraId = compra['id'];
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: const BoxDecoration(
-                color: Color(0xFFDCFCE7),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_rounded,
-                size: 40,
-                color: AppColors.success,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Compra realizada con éxito',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textDark,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              [
-                if (compraId != null) 'Pedido #$compraId',
-                if (total != null)
-                  'Total pagado: \$${total.toStringAsFixed(2)}',
-              ].join('\n'),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-            ),
-          ],
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Volver al catálogo'),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showSnack(String message, {bool isError = false}) {
