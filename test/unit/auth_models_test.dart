@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:farmayopin/features/auth/data/models/auth_response.dart';
-import 'package:farmayopin/features/auth/data/models/login_request.dart';
-import 'package:farmayopin/features/auth/data/models/register_request.dart';
+import 'package:farmayopin/data/models/auth_response.dart';
+import 'package:farmayopin/data/models/login_request.dart';
+import 'package:farmayopin/data/models/register_request.dart';
 
 void main() {
   group('Auth Models Test', () {

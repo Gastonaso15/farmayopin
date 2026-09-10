@@ -21,7 +21,9 @@ class ProductModel {
   /// Si es una ruta relativa almacenada en backend (ej: "img/..."), concatena con la URL base.
   String get imagenUrl {
     if (foto.isEmpty) return '';
-    if (foto.startsWith('http://') || foto.startsWith('https://') || foto.startsWith('data:')) {
+    if (foto.startsWith('http://') ||
+        foto.startsWith('https://') ||
+        foto.startsWith('data:')) {
       return foto;
     }
     final cleanPath = foto.startsWith('/') ? foto.substring(1) : foto;

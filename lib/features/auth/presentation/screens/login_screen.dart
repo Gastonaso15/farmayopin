@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
-import '../../data/models/auth_response.dart';
-import '../../data/models/login_request.dart';
-import '../../data/services/auth_service.dart';
-import '../widgets/brand_logo.dart';
+import '../../../../routing/app_navigator.dart';
+import '../../../../data/models/auth_response.dart';
+import '../../../../data/models/login_request.dart';
+import '../../../../data/services/auth_service.dart';
+import '../../../../core/widgets/brand_logo.dart';
 import '../widgets/custom_text_field.dart';
-import 'register_screen.dart';
-import '../../../admin/presentation/screens/admin_dashboard_screen.dart';
-import '../../../catalog/presentation/screens/catalog_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
@@ -74,16 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => response.rol == UserRole.admin
-              ? AdminDashboardScreen(
-                  token: response.token,
-                  nombre: response.nombre,
-                )
-              : CatalogScreen(token: response.token),
-        ),
-      );
+      AppNavigator.toHomeForRole(context, response);
     } catch (e) {
       if (!mounted) return;
 
@@ -260,13 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Link de Registro
                     Center(
                       child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const RegisterScreen(),
-                            ),
-                          );
-                        },
+                        onTap: () => AppNavigator.toRegister(context),
                         child: Text.rich(
                           TextSpan(
                             children: const [

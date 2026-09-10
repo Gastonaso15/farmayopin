@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
-import '../../data/models/auth_response.dart';
-import '../../data/models/register_request.dart';
-import '../../data/services/auth_service.dart';
+import '../../../../data/models/auth_response.dart';
+import '../../../../data/models/register_request.dart';
+import '../../../../data/services/auth_service.dart';
 import '../widgets/custom_text_field.dart';
 
 class RegisterScreen extends StatefulWidget {

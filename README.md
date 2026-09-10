@@ -21,15 +21,25 @@ Aplicacion movil cliente para la gestion de articulos farmaceuticos, pedidos, re
 La solucion general sigue una arquitectura distribuida compuesta por dos nodos principales:
 
 1. Nodo Cliente (Movil):
-   - Aplicacion desarrollada en Flutter (Dart) multiplataforma (Android e iOS).
+   - Aplicacion desarrollada en Flutter (Dart) multiplataforma (Android, iOS y Web).
    - Consume la API REST del backend mediante intercambio de datos en formato JSON.
    - Soporta autenticacion basada en JWT (header Authorization: Bearer token).
+   - El login devuelve token y rol; segun el rol, la app dirige al catalogo (cliente) o al panel de administracion (admin).
    - Preparada para incorporar cache local offline (SQLite o Hive) para consulta del historial de compras sin conexion.
 
 2. Nodo Servidor (Backend):
    - Servidor externo con Spring Boot, Spring Data JPA e Hibernate.
    - Base de datos relacional MySQL ejecutandose en un contenedor Docker.
    - Endpoints organizados por casos de uso para clientes y administradores.
+
+### Organizacion en capas (cliente)
+
+El codigo del cliente se divide en cuatro capas con dependencias en un solo sentido:
+
+- `core/`: base transversal (theme, constantes, utils y widgets reutilizables). No depende de ninguna otra capa.
+- `data/`: capa de datos compartida (modelos DTO y servicios HTTP). Solo depende de `core/`.
+- `routing/`: `AppNavigator`, unico punto donde se resuelven las navegaciones entre pantallas.
+- `features/`: interfaz de usuario por modulo (`auth`, `catalog`, `cart`, `admin`). Cada feature depende de `core/`, `data/` y `routing/`, nunca de otra feature.
 
 ---
 
@@ -99,35 +109,54 @@ La solucion general sigue una arquitectura distribuida compuesta por dos nodos p
 
 ## Estructura del Proyecto
 
-El codigo esta organizado siguiendo un enfoque Feature-First / Clean Architecture simplificada para facilitar el mantenimiento y escalabilidad:
+El codigo esta organizado siguiendo un enfoque Feature-First con una capa de datos compartida (`data/`) y una capa de navegacion (`routing/`), para evitar el acoplamiento entre modulos:
 
 ```text
 farmayopin/
 ├── lib/
 │   ├── main.dart                          # Punto de entrada de la aplicacion
-│   ├── core/                              # Componentes transversales
+│   ├── core/                              # Base transversal (no depende de nada mas)
 │   │   ├── constants/
-│   │   │   └── api_constants.dart         # URLs base y rutas de endpoints
+│   │   │   └── api_constants.dart         # URL base y rutas de endpoints
 │   │   ├── theme/
 │   │   │   ├── app_colors.dart            # Paleta de colores oficial de Figma
 │   │   │   └── app_theme.dart             # Tema global (ThemeData, Inter font)
-│   │   └── utils/
-│   │       └── validators.dart            # Validaciones de formularios
-│   └── features/                          # Modulos por caso de uso
-│       ├── auth/                          # Modulo de Autenticacion
-│       │   ├── data/
-│       │   │   ├── models/                # DTOs (login_request, register_request, auth_response)
-│       │   │   └── services/              # AuthService (llamadas HTTP /api/auth/*)
-│       │   └── presentation/
-│       │       ├── screens/               # login_screen.dart, register_screen.dart
-│       │       └── widgets/               # brand_logo.dart, custom_text_field.dart
-│       └── catalog/                       # Modulo de Catalogo
-│           ├── data/
-│           │   ├── models/                # product_model.dart, producto_request.dart
-│           │   └── services/              # catalog_service.dart (/api/productos)
-│           └── presentation/
-│               ├── screens/               # catalog_screen.dart, create_product_screen.dart, product_detail_screen.dart, edit_product_screen.dart
-│               └── widgets/               # product_card.dart, category_chip.dart
+│   │   ├── utils/
+│   │   │   └── validators.dart            # Validaciones de formularios
+│   │   └── widgets/                       # Widgets reutilizables cross-feature
+│   │       ├── app_screen_header.dart     # Cabecera con boton atras + titulo
+│   │       ├── back_icon_button.dart
+│   │       ├── brand_logo.dart
+│   │       ├── client_bottom_nav.dart     # Barra de navegacion inferior del cliente
+│   │       └── stepper_button.dart        # Boton +/- de cantidad
+│   ├── data/                              # Capa de datos compartida (solo depende de core/)
+│   │   ├── models/                        # DTOs de request/response
+│   │   │   ├── auth_response.dart         # incluye el enum UserRole
+│   │   │   ├── login_request.dart
+│   │   │   ├── register_request.dart
+│   │   │   ├── product_model.dart
+│   │   │   ├── producto_request.dart
+│   │   │   ├── cart_model.dart
+│   │   │   └── cart_item_model.dart
+│   │   └── services/                      # Clientes HTTP
+│   │       ├── auth_service.dart          # /api/auth/*  (login, register, logout)
+│   │       ├── catalog_service.dart       # /api/productos
+│   │       └── cart_service.dart          # /api/carrito
+│   ├── routing/
+│   │   └── app_navigator.dart             # Navegacion centralizada entre pantallas
+│   └── features/                          # Interfaz de usuario por modulo
+│       ├── auth/presentation/
+│       │   ├── screens/                   # login_screen.dart, register_screen.dart
+│       │   └── widgets/                   # custom_text_field.dart
+│       ├── catalog/presentation/
+│       │   ├── screens/                   # catalog_screen.dart, product_detail_client_screen.dart,
+│       │   │                              # product_detail_admin_screen.dart, manage_products_screen.dart,
+│       │   │                              # create_product_screen.dart, edit_product_screen.dart
+│       │   └── widgets/                   # product_card.dart, category_chip.dart
+│       ├── cart/presentation/
+│       │   └── screens/                   # cart_screen.dart, confirm_purchase_screen.dart
+│       └── admin/presentation/
+│           └── screens/                   # admin_dashboard_screen.dart
 └── test/                                  # Suite de pruebas unitarias y de widgets
     ├── unit/                              # Tests de validadores y DTOs
     └── features/                          # Tests de widgets de Auth y Catalogo

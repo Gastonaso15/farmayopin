@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../auth/presentation/widgets/brand_logo.dart';
-import '../../../cart/data/models/cart_model.dart';
-import '../../../cart/data/services/cart_service.dart';
-import '../../../cart/presentation/screens/cart_screen.dart';
-import '../../data/models/product_model.dart';
-import '../../data/services/catalog_service.dart';
+import '../../../../core/widgets/client_bottom_nav.dart';
+import '../../../../routing/app_navigator.dart';
+import '../../../../core/widgets/brand_logo.dart';
+import '../../../../data/services/cart_service.dart';
+import '../../../../data/models/product_model.dart';
+import '../../../../data/services/catalog_service.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/product_card.dart';
-import 'create_product_screen.dart';
-import 'product_detail_client_screen.dart';
 
 class CatalogScreen extends StatefulWidget {
   final CatalogService? catalogService;
@@ -58,9 +56,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   }
 
   Future<void> _openCart() async {
-    final cart = await Navigator.of(context).push<CartModel>(
-      MaterialPageRoute(builder: (_) => CartScreen(token: widget.token)),
-    );
+    final cart = await AppNavigator.toCart(context, token: widget.token);
     if (cart != null && mounted) {
       setState(() => _cartItemCount = cart.cantidadUnidades);
     } else {
@@ -177,13 +173,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           size: 26,
                         ),
                         onPressed: () async {
-                          final newProduct = await Navigator.of(context)
-                              .push<ProductModel>(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      CreateProductScreen(token: widget.token),
-                                ),
-                              );
+                          final newProduct = await AppNavigator.toCreateProduct(
+                            context,
+                            token: widget.token,
+                          );
                           if (newProduct != null) {
                             _loadProducts();
                           }
@@ -330,13 +323,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           return ProductCard(
                             product: product,
                             onTap: () async {
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ProductDetailClientScreen(
-                                    product: product,
-                                    token: widget.token,
-                                  ),
-                                ),
+                              await AppNavigator.toProductDetailClient(
+                                context,
+                                product: product,
+                                token: widget.token,
                               );
                               _refreshCartCount();
                             },
@@ -349,7 +339,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: ClientBottomNav(
+        currentIndex: _selectedNavIndex,
+        cartCount: _cartItemCount,
+        onTap: (index) {
+          if (index == 2) {
+            _openCart();
+          } else {
+            setState(() => _selectedNavIndex = index);
+          }
+        },
+      ),
     );
   }
 
@@ -427,127 +427,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
             style: TextStyle(color: AppColors.textMuted, fontSize: 13),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    final items = [
-      {
-        'icon': Icons.home_outlined,
-        'activeIcon': Icons.home_rounded,
-        'label': 'Inicio',
-      },
-      {
-        'icon': Icons.grid_view_outlined,
-        'activeIcon': Icons.grid_view_rounded,
-        'label': 'Catálogo',
-      },
-      {
-        'icon': Icons.shopping_cart_outlined,
-        'activeIcon': Icons.shopping_cart_rounded,
-        'label': 'Carrito',
-      },
-      {
-        'icon': Icons.receipt_long_outlined,
-        'activeIcon': Icons.receipt_long_rounded,
-        'label': 'Historial',
-      },
-      {
-        'icon': Icons.person_outline_rounded,
-        'activeIcon': Icons.person_rounded,
-        'label': 'Perfil',
-      },
-    ];
-
-    return SafeArea(
-      top: false,
-      child: Container(
-        height: 60,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(items.length, (index) {
-            final isSelected = _selectedNavIndex == index;
-            final isCart = index == 2;
-
-            return InkWell(
-              onTap: () {
-                if (index == 2) {
-                  _openCart();
-                  return;
-                }
-                setState(() {
-                  _selectedNavIndex = index;
-                });
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 56,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Icon(
-                          isSelected
-                              ? (items[index]['activeIcon'] as IconData)
-                              : (items[index]['icon'] as IconData),
-                          size: 22,
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.textMuted,
-                        ),
-                        if (isCart && _cartItemCount > 0)
-                          Positioned(
-                            right: -8,
-                            top: -6,
-                            child: Container(
-                              width: 16,
-                              height: 16,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '$_cartItemCount',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      items[index]['label'] as String,
-                      style: TextStyle(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.textMuted,
-                        fontSize: 10,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ),
       ),
     );
   }

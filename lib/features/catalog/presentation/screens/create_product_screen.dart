@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
-import '../../data/models/producto_request.dart';
-import '../../data/services/catalog_service.dart';
+import '../../../../core/widgets/back_icon_button.dart';
+import '../../../../data/models/producto_request.dart';
+import '../../../../data/services/catalog_service.dart';
 
 class CreateProductScreen extends StatefulWidget {
   final CatalogService? catalogService;
   final String? token;
 
-  const CreateProductScreen({
-    super.key,
-    this.catalogService,
-    this.token,
-  });
+  const CreateProductScreen({super.key, this.catalogService, this.token});
 
   @override
   State<CreateProductScreen> createState() => _CreateProductScreenState();
@@ -52,7 +50,9 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text(
             'URL de foto del producto',
             style: TextStyle(
@@ -68,8 +68,13 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                 controller: urlController,
                 decoration: InputDecoration(
                   hintText: 'https://ejemplo.com/producto.jpg',
-                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 13,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -77,13 +82,19 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                 spacing: 8,
                 children: [
                   ActionChip(
-                    label: const Text('Medicamento', style: TextStyle(fontSize: 11)),
+                    label: const Text(
+                      'Medicamento',
+                      style: TextStyle(fontSize: 11),
+                    ),
                     onPressed: () {
                       urlController.text = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&q=80';
                     },
                   ),
                   ActionChip(
-                    label: const Text('Vitamina', style: TextStyle(fontSize: 11)),
+                    label: const Text(
+                      'Vitamina',
+                      style: TextStyle(fontSize: 11),
+                    ),
                     onPressed: () {
                       urlController.text = 'https://images.unsplash.com/photo-1577401239170-897942555fb3?w=300&q=80';
                     },
@@ -95,17 +106,27 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: AppColors.textMuted),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
                 setState(() {
-                  _photoUrl = urlController.text.trim().isNotEmpty ? urlController.text.trim() : null;
+                  _photoUrl = urlController.text.trim().isNotEmpty
+                      ? urlController.text.trim()
+                      : null;
                 });
                 Navigator.of(ctx).pop();
               },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              child: const Text(
+                'Guardar',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -125,7 +146,9 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     });
 
     try {
-      final precio = double.parse(_precioController.text.trim().replaceAll(',', '.'));
+      final precio = double.parse(
+        _precioController.text.trim().replaceAll(',', '.'),
+      );
       final stock = int.parse(_stockController.text.trim());
 
       final request = ProductoRequest(
@@ -138,7 +161,10 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
         stock: stock,
       );
 
-      final created = await _catalogService.crearProducto(request, token: widget.token);
+      final created = await _catalogService.crearProducto(
+        request,
+        token: widget.token,
+      );
 
       if (!mounted) return;
 
@@ -187,30 +213,9 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Barra superior: Boton volver y Titulo
                     Row(
                       children: [
-                        InkWell(
-                          onTap: () => Navigator.of(context).pop(),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColors.border,
-                                width: 1,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              size: 18,
-                              color: AppColors.textDark,
-                            ),
-                          ),
-                        ),
+                        const BackIconButton(),
                         const SizedBox(width: 16),
                         const Text(
                           'Crear Producto',
@@ -233,10 +238,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFFAFAFA),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.border,
-                            width: 1,
-                          ),
+                          border: Border.all(color: AppColors.border, width: 1),
                         ),
                         child: _photoUrl != null && _photoUrl!.isNotEmpty
                             ? Stack(
@@ -249,7 +251,11 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                       width: double.infinity,
                                       height: double.infinity,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) => _buildPhotoPlaceholder(),
+                                      errorBuilder: (
+                                        context,
+                                        error,
+                                        stackTrace,
+                                      ) => _buildPhotoPlaceholder(),
                                     ),
                                   ),
                                   Positioned(
@@ -260,7 +266,11 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                       backgroundColor: Colors.white,
                                       child: IconButton(
                                         padding: EdgeInsets.zero,
-                                        icon: const Icon(Icons.close, size: 16, color: AppColors.error),
+                                        icon: const Icon(
+                                          Icons.close,
+                                          size: 16,
+                                          color: AppColors.error,
+                                        ),
                                         onPressed: () {
                                           setState(() {
                                             _photoUrl = null;
@@ -288,11 +298,20 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _nombreController,
-                      validator: (val) => Validators.validateRequired(val, 'nombre del producto'),
-                      style: const TextStyle(color: AppColors.textDark, fontSize: 15),
+                      validator: (val) => Validators.validateRequired(
+                        val,
+                        'nombre del producto',
+                      ),
+                      style: const TextStyle(
+                        color: AppColors.textDark,
+                        fontSize: 15,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Ej. Amoxicilina 500mg',
-                        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 15),
+                        hintStyle: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 15,
+                        ),
                         prefixIcon: const Icon(
                           Icons.medication_outlined,
                           size: 20,
@@ -310,7 +329,10 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+                          borderSide: const BorderSide(
+                            color: AppColors.borderFocus,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                     ),
@@ -330,13 +352,22 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                       controller: _descripcionController,
                       minLines: 3,
                       maxLines: 4,
-                      style: const TextStyle(color: AppColors.textDark, fontSize: 15),
+                      style: const TextStyle(
+                        color: AppColors.textDark,
+                        fontSize: 15,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Describe la dosificación, contraindicaciones y presentación...',
-                        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+                        hintStyle: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 14,
+                        ),
                         filled: true,
                         fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: AppColors.border),
@@ -347,7 +378,10 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+                          borderSide: const BorderSide(
+                            color: AppColors.borderFocus,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                     ),
@@ -372,25 +406,41 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _precioController,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
                                 validator: Validators.validatePrice,
-                                style: const TextStyle(color: AppColors.textDark, fontSize: 15),
+                                style: const TextStyle(
+                                  color: AppColors.textDark,
+                                  fontSize: 15,
+                                ),
                                 decoration: InputDecoration(
                                   hintText: 'Ej. 14.50',
-                                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 15),
+                                  hintStyle: const TextStyle(
+                                    color: AppColors.textMuted,
+                                    fontSize: 15,
+                                  ),
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: AppColors.border),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.border,
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: AppColors.border),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.border,
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.borderFocus,
+                                      width: 1.5,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -415,23 +465,36 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                                 controller: _stockController,
                                 keyboardType: TextInputType.number,
                                 validator: Validators.validateStock,
-                                style: const TextStyle(color: AppColors.textDark, fontSize: 15),
+                                style: const TextStyle(
+                                  color: AppColors.textDark,
+                                  fontSize: 15,
+                                ),
                                 decoration: InputDecoration(
                                   hintText: 'Ej. 50',
-                                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 15),
+                                  hintStyle: const TextStyle(
+                                    color: AppColors.textMuted,
+                                    fontSize: 15,
+                                  ),
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: AppColors.border),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.border,
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: AppColors.border),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.border,
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.borderFocus,
+                                      width: 1.5,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -460,7 +523,9 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         onPressed: _isLoading ? null : _handleCreateProduct,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.7),
+                          disabledBackgroundColor: AppColors.primary.withValues(
+                            alpha: 0.7,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -498,11 +563,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: const [
-        Icon(
-          Icons.cloud_upload_outlined,
-          size: 32,
-          color: AppColors.primary,
-        ),
+        Icon(Icons.cloud_upload_outlined, size: 32, color: AppColors.primary),
         SizedBox(height: 8),
         Text(
           'Subir foto del producto',

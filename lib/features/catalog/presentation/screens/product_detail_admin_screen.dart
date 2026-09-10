@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../data/models/product_model.dart';
-import 'edit_product_screen.dart';
 
-class ProductDetailScreen extends StatefulWidget {
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_screen_header.dart';
+import '../../../../routing/app_navigator.dart';
+import '../../../../data/models/product_model.dart';
+
+class ProductDetailAdminScreen extends StatefulWidget {
   final ProductModel product;
   final String? token;
   final VoidCallback? onEdit;
   final VoidCallback? onViewPurchaseHistory;
 
-  const ProductDetailScreen({
+  const ProductDetailAdminScreen({
     super.key,
     required this.product,
     this.token,
@@ -18,10 +20,11 @@ class ProductDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+  State<ProductDetailAdminScreen> createState() =>
+      _ProductDetailAdminScreenState();
 }
 
-class _ProductDetailScreenState extends State<ProductDetailScreen> {
+class _ProductDetailAdminScreenState extends State<ProductDetailAdminScreen> {
   late ProductModel _product;
 
   @override
@@ -36,13 +39,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       return;
     }
 
-    final updated = await Navigator.of(context).push<ProductModel>(
-      MaterialPageRoute(
-        builder: (_) => EditProductScreen(
-          product: _product,
-          token: widget.token,
-        ),
-      ),
+    final updated = await AppNavigator.toEditProduct(
+      context,
+      product: _product,
+      token: widget.token,
     );
 
     if (updated != null && mounted) {
@@ -61,62 +61,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Barra de Navegacion Superior
-            Container(
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  bottom: BorderSide(
-                    width: 1,
-                    color: AppColors.border,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(_product),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(
-                          width: 1,
-                          color: AppColors.border,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          size: 18,
-                          color: AppColors.textDark,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text(
-                      'Detalle del Producto',
-                      style: TextStyle(
-                        color: AppColors.textDark,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            AppScreenHeader(
+              title: 'Detalle del Producto',
+              onBack: () => Navigator.of(context).pop(_product),
             ),
-
-            // Contenido con Scroll
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 20,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -127,17 +81,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border.all(
-                          width: 1,
-                          color: AppColors.border,
-                        ),
+                        border: Border.all(width: 1, color: AppColors.border),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: _product.imagenUrl.isNotEmpty
                           ? Image.network(
                               _product.imagenUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildImagePlaceholder(),
                             )
                           : _buildImagePlaceholder(),
                     ),
@@ -157,7 +109,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFAFAFA),
                             border: Border.all(
@@ -193,9 +148,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     // Badge de Stock
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
-                        color: hasStock ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                        color: hasStock
+                            ? const Color(0xFFDCFCE7)
+                            : const Color(0xFFFEE2E2),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Center(
@@ -204,7 +164,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ? 'Stock disponible: ${_product.stock} unidades'
                               : 'Producto sin stock disponible',
                           style: TextStyle(
-                            color: hasStock ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                            color: hasStock
+                                ? const Color(0xFF16A34A)
+                                : const Color(0xFFDC2626),
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                           ),
@@ -234,7 +196,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       height: 50,
                       child: ElevatedButton.icon(
                         onPressed: () => _handleEditNavigation(context),
-                        icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.white),
+                        icon: const Icon(
+                          Icons.edit_outlined,
+                          size: 20,
+                          color: Colors.white,
+                        ),
                         label: const Text(
                           'Editar producto',
                           style: TextStyle(
@@ -259,8 +225,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       width: double.infinity,
                       height: 50,
                       child: OutlinedButton.icon(
-                        onPressed: widget.onViewPurchaseHistory ?? () => _showComingSoonSnackBar(context, 'Historial de compras proximamente (UC-08).'),
-                        icon: const Icon(Icons.history_rounded, size: 20, color: AppColors.primary),
+                        onPressed: widget.onViewPurchaseHistory ?? () {},
+                        icon: const Icon(
+                          Icons.history_rounded,
+                          size: 20,
+                          color: AppColors.primary,
+                        ),
                         label: const Text(
                           'Ver historial de compras',
                           style: TextStyle(
@@ -300,17 +270,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           size: 64,
           color: AppColors.textSubtle,
         ),
-      ),
-    );
-  }
-
-  void _showComingSoonSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
       ),
     );
   }

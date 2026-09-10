@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:farmayopin/features/catalog/data/models/product_model.dart';
+import 'package:farmayopin/data/models/product_model.dart';
 
 void main() {
   group('ProductModel Tests', () {

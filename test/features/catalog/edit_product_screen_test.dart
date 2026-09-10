@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:farmayopin/core/theme/app_theme.dart';
-import 'package:farmayopin/features/catalog/data/models/product_model.dart';
-import 'package:farmayopin/features/catalog/data/models/producto_request.dart';
-import 'package:farmayopin/features/catalog/data/services/catalog_service.dart';
+import 'package:farmayopin/data/models/product_model.dart';
+import 'package:farmayopin/data/models/producto_request.dart';
+import 'package:farmayopin/data/services/catalog_service.dart';
 import 'package:farmayopin/features/catalog/presentation/screens/edit_product_screen.dart';
 
 class MockCatalogServiceForEdit extends CatalogService {

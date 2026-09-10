@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:farmayopin/core/theme/app_theme.dart';
-import 'package:farmayopin/features/catalog/data/models/product_model.dart';
-import 'package:farmayopin/features/catalog/data/services/catalog_service.dart';
+import 'package:farmayopin/data/models/product_model.dart';
+import 'package:farmayopin/data/services/catalog_service.dart';
 import 'package:farmayopin/features/catalog/presentation/screens/catalog_screen.dart';
 
 class MockCatalogService extends CatalogService {
@@ -40,28 +40,33 @@ void main() {
   }
 
   group('CatalogScreen Widget Tests', () {
-    testWidgets('Renderiza elementos principales: logo, búsqueda, chips y lista de productos', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(800, 1600);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+    testWidgets(
+      'Renderiza elementos principales: logo, búsqueda, chips y lista de productos',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(800, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
 
-      expect(find.text('Catálogo Completo'), findsOneWidget);
-      expect(find.text('Buscar productos, medicamentos...'), findsOneWidget);
-      expect(find.text('Todos'), findsOneWidget);
-      expect(find.text('Medicamentos'), findsWidgets);
-      expect(find.text('Vitaminas'), findsWidgets);
+        expect(find.text('Catálogo Completo'), findsOneWidget);
+        expect(find.text('Buscar productos, medicamentos...'), findsOneWidget);
+        expect(find.text('Todos'), findsOneWidget);
+        expect(find.text('Medicamentos'), findsWidgets);
+        expect(find.text('Vitaminas'), findsWidgets);
 
-      // Verifica que los productos mock se muestren
-      expect(find.text('Vitamina C 1000mg'), findsOneWidget);
-      expect(find.text('Ibuprofeno 400mg'), findsOneWidget);
-      expect(find.text('\$12.99'), findsOneWidget);
-      expect(find.text('\$3.45'), findsOneWidget);
-    });
+        // Verifica que los productos mock se muestren
+        expect(find.text('Vitamina C 1000mg'), findsOneWidget);
+        expect(find.text('Ibuprofeno 400mg'), findsOneWidget);
+        expect(find.text('\$12.99'), findsOneWidget);
+        expect(find.text('\$3.45'), findsOneWidget);
+      },
+    );
 
-    testWidgets('Filtrado por categoría funciona correctamente', (WidgetTester tester) async {
+    testWidgets('Filtrado por categoría funciona correctamente', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -78,7 +83,9 @@ void main() {
       expect(find.text('Ibuprofeno 400mg'), findsNothing);
     });
 
-    testWidgets('Búsqueda por texto filtra los productos en tiempo real', (WidgetTester tester) async {
+    testWidgets('Búsqueda por texto filtra los productos en tiempo real', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -94,7 +101,9 @@ void main() {
       expect(find.text('Vitamina C 1000mg'), findsNothing);
     });
 
-    testWidgets('Tocar una tarjeta de producto navega a ProductDetailScreen', (WidgetTester tester) async {
+    testWidgets('Tocar una tarjeta de producto navega al detalle del cliente', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -105,9 +114,9 @@ void main() {
       await tester.tap(find.text('Vitamina C 1000mg'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Detalle del Producto'), findsOneWidget);
+      expect(find.text('Detalle del producto'), findsOneWidget);
       expect(find.text('Stock disponible: 24 unidades'), findsOneWidget);
-      expect(find.text('Editar producto'), findsOneWidget);
+      expect(find.text('Agregar al carrito'), findsOneWidget);
     });
   });
 }

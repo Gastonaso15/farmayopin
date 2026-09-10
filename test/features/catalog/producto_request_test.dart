@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:farmayopin/features/catalog/data/models/producto_request.dart';
+import 'package:farmayopin/data/models/producto_request.dart';
 
 void main() {
   group('ProductoRequest Tests', () {

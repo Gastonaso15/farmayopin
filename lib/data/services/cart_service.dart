@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-import '../../../../core/constants/api_constants.dart';
+import '../../core/constants/api_constants.dart';
 import '../models/cart_model.dart';
 
 class CartException implements Exception {

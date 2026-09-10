@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+
+import '../theme/app_colors.dart';
 
 class BrandLogo extends StatelessWidget {
   final double iconSize;
   final double fontSize;
 
-  const BrandLogo({
-    super.key,
-    this.iconSize = 40,
-    this.fontSize = 24,
-  });
+  const BrandLogo({super.key, this.iconSize = 40, this.fontSize = 24});
 
   @override
   Widget build(BuildContext context) {

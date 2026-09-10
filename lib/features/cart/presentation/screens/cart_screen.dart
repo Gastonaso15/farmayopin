@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../data/models/cart_item_model.dart';
-import '../../data/models/cart_model.dart';
-import '../../data/services/cart_service.dart';
-import 'confirm_purchase_screen.dart';
+import '../../../../core/widgets/app_screen_header.dart';
+import '../../../../core/widgets/client_bottom_nav.dart';
+import '../../../../core/widgets/stepper_button.dart';
+import '../../../../routing/app_navigator.dart';
+import '../../../../data/models/cart_item_model.dart';
+import '../../../../data/models/cart_model.dart';
+import '../../../../data/services/cart_service.dart';
 
 class CartScreen extends StatefulWidget {
   final String? token;
@@ -123,10 +126,10 @@ class _CartScreenState extends State<CartScreen> {
   Future<void> _goToConfirm() async {
     if (_cart.isEmpty) return;
 
-    final paid = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => ConfirmPurchaseScreen(cart: _cart, token: widget.token),
-      ),
+    final paid = await AppNavigator.toConfirmPurchase(
+      context,
+      cart: _cart,
+      token: widget.token,
     );
 
     if (paid == true && mounted) {
@@ -159,204 +162,44 @@ class _CartScreenState extends State<CartScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
+              AppScreenHeader(
+                title: 'Mi Carrito',
+                onBack: () => Navigator.of(context).pop(_cart),
+                trailing: _cart.isEmpty ? null : _buildItemsBadge(),
+              ),
               Expanded(child: _buildBody()),
             ],
           ),
         ),
-        bottomNavigationBar: _buildBottomNav(),
-      ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    final items = [
-      {
-        'icon': Icons.home_outlined,
-        'activeIcon': Icons.home_rounded,
-        'label': 'Inicio',
-      },
-      {
-        'icon': Icons.grid_view_outlined,
-        'activeIcon': Icons.grid_view_rounded,
-        'label': 'Catálogo',
-      },
-      {
-        'icon': Icons.shopping_cart_outlined,
-        'activeIcon': Icons.shopping_cart_rounded,
-        'label': 'Carrito',
-      },
-      {
-        'icon': Icons.receipt_long_outlined,
-        'activeIcon': Icons.receipt_long_rounded,
-        'label': 'Historial',
-      },
-      {
-        'icon': Icons.person_outline_rounded,
-        'activeIcon': Icons.person_rounded,
-        'label': 'Perfil',
-      },
-    ];
-    const currentIndex = 2;
-
-    return SafeArea(
-      top: false,
-      child: Container(
-        height: 60,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(items.length, (index) {
-            final isSelected = index == currentIndex;
-            final isCart = index == 2;
-
-            return InkWell(
-              onTap: () => _onNavTap(index),
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 56,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Icon(
-                          isSelected
-                              ? (items[index]['activeIcon'] as IconData)
-                              : (items[index]['icon'] as IconData),
-                          size: 22,
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.textMuted,
-                        ),
-                        if (isCart && _cart.cantidadUnidades > 0)
-                          Positioned(
-                            right: -8,
-                            top: -6,
-                            child: Container(
-                              width: 16,
-                              height: 16,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${_cart.cantidadUnidades}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      items[index]['label'] as String,
-                      style: TextStyle(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.textMuted,
-                        fontSize: 11,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
+        bottomNavigationBar: ClientBottomNav(
+          currentIndex: 2,
+          cartCount: _cart.cantidadUnidades,
+          onTap: _onNavTap,
         ),
       ),
     );
   }
 
   void _onNavTap(int index) {
-    switch (index) {
-      case 0:
-      case 1:
-        Navigator.of(context).pop(_cart);
-        break;
-      case 2:
-        break;
-      case 3:
-        _showSnack('Historial de compras próximamente.');
-        break;
-      case 4:
-        _showSnack('Perfil próximamente.');
-        break;
+    if (index == 0 || index == 1) {
+      Navigator.of(context).pop(_cart);
     }
   }
 
-  Widget _buildHeader() {
+  Widget _buildItemsBadge() {
     return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(width: 1, color: AppColors.border)),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F9FF),
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(_cart),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(width: 1, color: AppColors.border),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18,
-                  color: AppColors.textDark,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Text(
-              'Mi Carrito',
-              style: TextStyle(
-                color: AppColors.textDark,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          if (!_cart.isEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0F9FF),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${_cart.items.length} ${_cart.items.length == 1 ? 'Item' : 'Items'}',
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-        ],
+      child: Text(
+        '${_cart.items.length} ${_cart.items.length == 1 ? 'Item' : 'Items'}',
+        style: const TextStyle(
+          color: AppColors.primary,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -484,7 +327,7 @@ class _CartScreenState extends State<CartScreen> {
   Widget _buildQuantityStepper(CartItemModel item, bool isBusy) {
     return Row(
       children: [
-        _stepperButton(
+        StepperButton(
           icon: Icons.remove_rounded,
           onTap: isBusy ? null : () => _updateQuantity(item, item.cantidad - 1),
         ),
@@ -498,31 +341,11 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        _stepperButton(
+        StepperButton(
           icon: Icons.add_rounded,
           onTap: isBusy ? null : () => _updateQuantity(item, item.cantidad + 1),
         ),
       ],
-    );
-  }
-
-  Widget _stepperButton({required IconData icon, VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Icon(
-          icon,
-          size: 14,
-          color: onTap == null ? AppColors.textSubtle : AppColors.textDark,
-        ),
-      ),
     );
   }
 

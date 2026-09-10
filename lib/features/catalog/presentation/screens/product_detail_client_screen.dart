@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../cart/data/services/cart_service.dart';
-import '../../data/models/product_model.dart';
+import '../../../../core/widgets/app_screen_header.dart';
+import '../../../../core/widgets/client_bottom_nav.dart';
+import '../../../../core/widgets/stepper_button.dart';
+import '../../../../data/services/cart_service.dart';
+import '../../../../data/models/product_model.dart';
 
 class ProductDetailClientScreen extends StatefulWidget {
   final ProductModel product;
@@ -79,7 +82,7 @@ class _ProductDetailClientScreenState extends State<ProductDetailClientScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            const AppScreenHeader(title: 'Detalle del producto'),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
@@ -100,53 +103,14 @@ class _ProductDetailClientScreenState extends State<ProductDetailClientScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: ClientBottomNav(currentIndex: 1, onTap: _onNavTap),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(width: 1, color: AppColors.border)),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(width: 1, color: AppColors.border),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18,
-                  color: AppColors.textDark,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Text(
-              'Detalle del producto',
-              style: TextStyle(
-                color: AppColors.textDark,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  void _onNavTap(int index) {
+    if (index == 0 || index == 1) {
+      Navigator.of(context).pop();
+    }
   }
 
   Widget _buildImage() {
@@ -267,8 +231,11 @@ class _ProductDetailClientScreenState extends State<ProductDetailClientScreen> {
         const SizedBox(height: 14),
         Row(
           children: [
-            _stepperButton(
+            StepperButton(
               icon: Icons.remove_rounded,
+              size: 44,
+              iconSize: 20,
+              radius: 12,
               onTap: hasStock && _cantidad > 1
                   ? () => _changeQuantity(-1)
                   : null,
@@ -283,8 +250,11 @@ class _ProductDetailClientScreenState extends State<ProductDetailClientScreen> {
               ),
             ),
             const SizedBox(width: 16),
-            _stepperButton(
+            StepperButton(
               icon: Icons.add_rounded,
+              size: 44,
+              iconSize: 20,
+              radius: 12,
               onTap: hasStock && _cantidad < _stock
                   ? () => _changeQuantity(1)
                   : null,
@@ -292,26 +262,6 @@ class _ProductDetailClientScreenState extends State<ProductDetailClientScreen> {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _stepperButton({required IconData icon, VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: onTap == null ? AppColors.textSubtle : AppColors.textDark,
-        ),
-      ),
     );
   }
 
@@ -352,108 +302,5 @@ class _ProductDetailClientScreenState extends State<ProductDetailClientScreen> {
         ),
       ],
     );
-  }
-
-  Widget _buildBottomNav() {
-    final items = [
-      {
-        'icon': Icons.home_outlined,
-        'activeIcon': Icons.home_rounded,
-        'label': 'Inicio',
-      },
-      {
-        'icon': Icons.grid_view_outlined,
-        'activeIcon': Icons.grid_view_rounded,
-        'label': 'Catálogo',
-      },
-      {
-        'icon': Icons.shopping_cart_outlined,
-        'activeIcon': Icons.shopping_cart_rounded,
-        'label': 'Carrito',
-      },
-      {
-        'icon': Icons.receipt_long_outlined,
-        'activeIcon': Icons.receipt_long_rounded,
-        'label': 'Historial',
-      },
-      {
-        'icon': Icons.person_outline_rounded,
-        'activeIcon': Icons.person_rounded,
-        'label': 'Perfil',
-      },
-    ];
-    const currentIndex = 1;
-
-    return SafeArea(
-      top: false,
-      child: Container(
-        height: 60,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.border, width: 1)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(items.length, (index) {
-            final isSelected = index == currentIndex;
-
-            return InkWell(
-              onTap: () => _onNavTap(index),
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 56,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      isSelected
-                          ? (items[index]['activeIcon'] as IconData)
-                          : (items[index]['icon'] as IconData),
-                      size: 22,
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.textMuted,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      items[index]['label'] as String,
-                      style: TextStyle(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.textMuted,
-                        fontSize: 11,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-
-  void _onNavTap(int index) {
-    switch (index) {
-      case 0:
-      case 1:
-        Navigator.of(context).pop();
-        break;
-      case 2:
-        _showSnack('Abre el carrito desde el catálogo.');
-        break;
-      case 3:
-        _showSnack('Historial de compras próximamente.');
-        break;
-      case 4:
-        _showSnack('Perfil próximamente.');
-        break;
-    }
   }
 }

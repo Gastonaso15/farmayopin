@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
-import '../../data/models/product_model.dart';
-import '../../data/models/producto_request.dart';
-import '../../data/services/catalog_service.dart';
+import '../../../../core/widgets/app_screen_header.dart';
+import '../../../../data/models/product_model.dart';
+import '../../../../data/models/producto_request.dart';
+import '../../../../data/services/catalog_service.dart';
 
 class EditProductScreen extends StatefulWidget {
   final ProductModel product;
@@ -48,9 +51,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
     _picker = widget.imagePicker ?? ImagePicker();
 
     _nombreController = TextEditingController(text: widget.product.nombre);
-    _descripcionController = TextEditingController(text: widget.product.detalle);
-    _precioController = TextEditingController(text: widget.product.precio.toStringAsFixed(2));
-    _stockController = TextEditingController(text: widget.product.stock.toString());
+    _descripcionController = TextEditingController(
+      text: widget.product.detalle,
+    );
+    _precioController = TextEditingController(
+      text: widget.product.precio.toStringAsFixed(2),
+    );
+    _stockController = TextEditingController(
+      text: widget.product.stock.toString(),
+    );
     _photoUrl = widget.product.foto.isNotEmpty ? widget.product.foto : null;
 
     // Si la foto existente ya es data URI base64, decodificar los bytes
@@ -215,7 +224,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   void _showPhotoUrlDialog() {
     final urlController = TextEditingController(
-      text: (_photoUrl != null && !_photoUrl!.startsWith('data:')) ? _photoUrl! : '',
+      text: (_photoUrl != null && !_photoUrl!.startsWith('data:'))
+          ? _photoUrl!
+          : '',
     );
 
     showDialog(
@@ -223,7 +234,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text(
             'URL de foto del producto',
             style: TextStyle(
@@ -239,8 +252,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 controller: urlController,
                 decoration: InputDecoration(
                   hintText: 'https://ejemplo.com/producto.jpg',
-                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 13,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -248,13 +266,19 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 spacing: 8,
                 children: [
                   ActionChip(
-                    label: const Text('Medicamento', style: TextStyle(fontSize: 11)),
+                    label: const Text(
+                      'Medicamento',
+                      style: TextStyle(fontSize: 11),
+                    ),
                     onPressed: () {
                       urlController.text = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&q=80';
                     },
                   ),
                   ActionChip(
-                    label: const Text('Vitamina', style: TextStyle(fontSize: 11)),
+                    label: const Text(
+                      'Vitamina',
+                      style: TextStyle(fontSize: 11),
+                    ),
                     onPressed: () {
                       urlController.text = 'https://images.unsplash.com/photo-1577401239170-897942555fb3?w=300&q=80';
                     },
@@ -266,18 +290,28 @@ class _EditProductScreenState extends State<EditProductScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancelar', style: TextStyle(color: AppColors.textMuted)),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: AppColors.textMuted),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
                 setState(() {
                   _localImageBytes = null;
-                  _photoUrl = urlController.text.trim().isNotEmpty ? urlController.text.trim() : null;
+                  _photoUrl = urlController.text.trim().isNotEmpty
+                      ? urlController.text.trim()
+                      : null;
                 });
                 Navigator.of(ctx).pop();
               },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              child: const Text(
+                'Guardar',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -297,7 +331,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
     });
 
     try {
-      final precio = double.parse(_precioController.text.trim().replaceAll(',', '.'));
+      final precio = double.parse(
+        _precioController.text.trim().replaceAll(',', '.'),
+      );
       final stock = int.parse(_stockController.text.trim());
 
       final request = ProductoRequest(
@@ -320,7 +356,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Producto "${updated.nombre}" actualizado exitosamente.'),
+          content: Text(
+            'Producto "${updated.nombre}" actualizado exitosamente.',
+          ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ),
@@ -353,63 +391,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Barra Superior de Navegacion
-            Container(
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  bottom: BorderSide(
-                    width: 1,
-                    color: AppColors.border,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(
-                          width: 1,
-                          color: AppColors.border,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          size: 18,
-                          color: AppColors.textDark,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text(
-                      'Editar Producto',
-                      style: TextStyle(
-                        color: AppColors.textDark,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Contenido con Scroll
+            const AppScreenHeader(title: 'Editar Producto'),
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
                     child: Form(
@@ -470,25 +459,44 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _nombreController,
-                            validator: (val) => Validators.validateRequired(val, 'nombre del producto'),
-                            style: const TextStyle(color: AppColors.textDark, fontSize: 15),
+                            validator: (val) => Validators.validateRequired(
+                              val,
+                              'nombre del producto',
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.textDark,
+                              fontSize: 15,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Ej. Vitamina C 1000mg',
-                              hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 15),
+                              hintStyle: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 15,
+                              ),
                               filled: true,
                               fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.border),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.border),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+                                borderSide: const BorderSide(
+                                  color: AppColors.borderFocus,
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                           ),
@@ -508,24 +516,40 @@ class _EditProductScreenState extends State<EditProductScreen> {
                             controller: _descripcionController,
                             minLines: 3,
                             maxLines: 4,
-                            style: const TextStyle(color: AppColors.textDark, fontSize: 15),
+                            style: const TextStyle(
+                              color: AppColors.textDark,
+                              fontSize: 15,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Describe la dosificación, contraindicaciones y presentación...',
-                              hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+                              hintStyle: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 14,
+                              ),
                               filled: true,
                               fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.border),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.border),
+                                borderSide: const BorderSide(
+                                  color: AppColors.border,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+                                borderSide: const BorderSide(
+                                  color: AppColors.borderFocus,
+                                  width: 1.5,
+                                ),
                               ),
                             ),
                           ),
@@ -550,26 +574,52 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                     const SizedBox(height: 6),
                                     TextFormField(
                                       controller: _precioController,
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
                                       validator: Validators.validatePrice,
-                                      style: const TextStyle(color: AppColors.textDark, fontSize: 15),
+                                      style: const TextStyle(
+                                        color: AppColors.textDark,
+                                        fontSize: 15,
+                                      ),
                                       decoration: InputDecoration(
                                         hintText: '12.99',
-                                        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 15),
+                                        hintStyle: const TextStyle(
+                                          color: AppColors.textMuted,
+                                          fontSize: 15,
+                                        ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 14,
+                                            ),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: AppColors.border),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: AppColors.border,
+                                          ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: AppColors.border),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: AppColors.border,
+                                          ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: AppColors.borderFocus,
+                                            width: 1.5,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -594,24 +644,47 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                       controller: _stockController,
                                       keyboardType: TextInputType.number,
                                       validator: Validators.validateStock,
-                                      style: const TextStyle(color: AppColors.textDark, fontSize: 15),
+                                      style: const TextStyle(
+                                        color: AppColors.textDark,
+                                        fontSize: 15,
+                                      ),
                                       decoration: InputDecoration(
                                         hintText: '24',
-                                        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 15),
+                                        hintStyle: const TextStyle(
+                                          color: AppColors.textMuted,
+                                          fontSize: 15,
+                                        ),
                                         filled: true,
                                         fillColor: Colors.white,
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 14,
+                                            ),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: AppColors.border),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: AppColors.border,
+                                          ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: AppColors.border),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: AppColors.border,
+                                          ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: AppColors.borderFocus,
+                                            width: 1.5,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -637,10 +710,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
                               ],
                             ),
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleUpdateProduct,
+                              onPressed: _isLoading
+                                  ? null
+                                  : _handleUpdateProduct,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
-                                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.7),
+                                disabledBackgroundColor: AppColors.primary
+                                    .withValues(alpha: 0.7),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -726,7 +802,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
               width: double.infinity,
               height: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => _buildPhotoPlaceholder(),
+              errorBuilder: (context, error, stackTrace) =>
+                  _buildPhotoPlaceholder(),
             ),
           ),
           Positioned(

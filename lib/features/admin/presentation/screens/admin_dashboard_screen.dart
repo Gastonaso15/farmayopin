@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../auth/data/services/auth_service.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
-import '../../../catalog/data/services/catalog_service.dart';
+import '../../../../routing/app_navigator.dart';
+import '../../../../data/services/auth_service.dart';
+import '../../../../data/services/catalog_service.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   final String token;
@@ -56,21 +56,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     setState(() => _isLoggingOut = true);
     await _authService.logout(widget.token);
     if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
+    AppNavigator.toLoginAndClearStack(context);
   }
 
-  void _showSnack(String message) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  Future<void> _openManageProducts() async {
+    await AppNavigator.toManageProducts(context, token: widget.token);
+    _loadStats();
   }
 
   @override
@@ -342,14 +333,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           icon: Icons.inventory_2_outlined,
           label: 'Gestionar Productos',
           filled: true,
-          onTap: () => _showSnack('Gestionar Productos próximamente.'),
+          onTap: _openManageProducts,
         ),
         const SizedBox(height: 12),
         _buildActionButton(
           icon: Icons.receipt_long_outlined,
           label: 'Historial de Compras',
           filled: false,
-          onTap: () => _showSnack('Historial de compras próximamente.'),
+          onTap: () {},
         ),
       ],
     );
