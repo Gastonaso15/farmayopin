@@ -13,8 +13,16 @@ import '../widgets/product_card.dart';
 class CatalogScreen extends StatefulWidget {
   final CatalogService? catalogService;
   final String? token;
+  final String nombre;
+  final String email;
 
-  const CatalogScreen({super.key, this.catalogService, this.token});
+  const CatalogScreen({
+    super.key,
+    this.catalogService,
+    this.token,
+    this.nombre = '',
+    this.email = '',
+  });
 
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
@@ -62,6 +70,16 @@ class _CatalogScreenState extends State<CatalogScreen> {
     } else {
       _refreshCartCount();
     }
+  }
+
+  Future<void> _openProfile() async {
+    await AppNavigator.toProfile(
+      context,
+      token: widget.token ?? '',
+      nombre: widget.nombre,
+      email: widget.email,
+    );
+    _refreshCartCount();
   }
 
   @override
@@ -345,6 +363,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
         onTap: (index) {
           if (index == 2) {
             _openCart();
+          } else if (index == 4) {
+            _openProfile();
           } else {
             setState(() => _selectedNavIndex = index);
           }

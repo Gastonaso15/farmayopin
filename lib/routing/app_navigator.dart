@@ -14,6 +14,7 @@ import '../features/catalog/presentation/screens/edit_product_screen.dart';
 import '../features/catalog/presentation/screens/manage_products_screen.dart';
 import '../features/catalog/presentation/screens/product_detail_admin_screen.dart';
 import '../features/catalog/presentation/screens/product_detail_client_screen.dart';
+import '../features/profile/presentation/screens/profile_screen.dart';
 
 class AppNavigator {
   AppNavigator._();
@@ -23,7 +24,11 @@ class AppNavigator {
       MaterialPageRoute(
         builder: (_) => auth.rol == UserRole.admin
             ? AdminDashboardScreen(token: auth.token, nombre: auth.nombre)
-            : CatalogScreen(token: auth.token),
+            : CatalogScreen(
+                token: auth.token,
+                nombre: auth.nombre,
+                email: auth.email,
+              ),
       ),
     );
   }
@@ -77,6 +82,20 @@ class AppNavigator {
   }) {
     return Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => ManageProductsScreen(token: token)),
+    );
+  }
+
+  static Future<void> toProfile(
+    BuildContext context, {
+    required String token,
+    required String nombre,
+    required String email,
+  }) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            ProfileScreen(token: token, nombre: nombre, email: email),
+      ),
     );
   }
 
