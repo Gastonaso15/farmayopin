@@ -5,6 +5,7 @@ import '../../../../core/widgets/app_screen_header.dart';
 import '../../../../routing/app_navigator.dart';
 import '../../../../data/models/product_model.dart';
 import '../../../../data/services/catalog_service.dart';
+import '../widgets/eliminar_producto_dialog.dart';
 
 class ManageProductsScreen extends StatefulWidget {
   final String token;
@@ -72,36 +73,33 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   }
 
   Future<void> _confirmDelete(ProductModel product) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Eliminar producto'),
-        content: Text('¿Deseas eliminar "${product.nombre}" del catálogo?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: AppColors.textMuted),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Eliminar',
-              style: TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await EliminarProductoDialog.show(
+      context,
+      nombreProducto: product.nombre,
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await _catalogService.eliminarProducto(product.id, token: widget.token);
+      if (!mounted) return;
+      setState(() {
+        _products.removeWhere((p) => p.id == product.id);
+      });
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('El backend todavía no permite eliminar productos.'),
+        SnackBar(
+          content: Text('"${product.nombre}" fue eliminado del catálogo.'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } on CatalogException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
