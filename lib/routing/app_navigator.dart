@@ -14,6 +14,7 @@ import '../features/catalog/presentation/screens/edit_product_screen.dart';
 import '../features/catalog/presentation/screens/manage_products_screen.dart';
 import '../features/catalog/presentation/screens/product_detail_admin_screen.dart';
 import '../features/catalog/presentation/screens/product_detail_client_screen.dart';
+import '../features/catalog/presentation/screens/historial_compras_producto_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../data/models/compra_model.dart';
 import '../features/compras/presentation/screens/detalle_compra_screen.dart';
@@ -152,6 +153,21 @@ class AppNavigator {
       MaterialPageRoute(
         builder: (_) =>
             ProductDetailAdminScreen(product: product, token: token),
+      ),
+    );
+  }
+
+  static Future<void> toHistorialProducto(
+    BuildContext context, {
+    required ProductModel product,
+    String? token,
+  }) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HistorialComprasProductoScreen(
+          product: product,
+          token: token,
+        ),
       ),
     );
   }

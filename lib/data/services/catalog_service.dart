@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 import '../models/product_model.dart';
+import '../models/producto_compra_historial_model.dart';
 import '../models/producto_request.dart';
 
 class CatalogException implements Exception {
@@ -152,6 +153,52 @@ class CatalogService {
     } on SocketException {
       // Si esta en modo offline, simula eliminacion exitosa local para pruebas
       return;
+    } on http.ClientException {
+      throw CatalogException('Error de comunicacion con el servidor.');
+    } catch (e) {
+      if (e is CatalogException) rethrow;
+      throw CatalogException('Ocurrio un error inesperado: $e');
+    }
+  }
+
+  /// Obtiene el historial de compras de un producto (GET /api/productos/{id}/compras).
+  /// Solo accesible para Administradores.
+  Future<List<ProductoCompraHistorialModel>> getHistorialComprasProducto(
+    int productoId, {
+    String? token,
+  }) async {
+    final uri = Uri.parse('${ApiConstants.baseUrl}/api/productos/$productoId/compras');
+
+    try {
+      final headers = <String, String>{
+        'Accept': 'application/json',
+      };
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await _client.get(uri, headers: headers);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(response.body);
+        return list
+            .map((item) => ProductoCompraHistorialModel.fromJson(
+                item as Map<String, dynamic>))
+            .toList();
+      } else if (response.statusCode == 403) {
+        throw CatalogException(
+            'Acceso denegado: se requieren permisos de Administrador.',
+            response.statusCode);
+      } else if (response.statusCode == 404) {
+        throw CatalogException(
+            'El producto no fue encontrado.', response.statusCode);
+      } else {
+        throw CatalogException(
+            'Error en el servidor (${response.statusCode}).',
+            response.statusCode);
+      }
+    } on SocketException {
+      throw CatalogException('Error de comunicacion con el servidor.');
     } on http.ClientException {
       throw CatalogException('Error de comunicacion con el servidor.');
     } catch (e) {

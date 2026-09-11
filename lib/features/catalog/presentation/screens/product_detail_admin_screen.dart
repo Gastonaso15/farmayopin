@@ -52,6 +52,19 @@ class _ProductDetailAdminScreenState extends State<ProductDetailAdminScreen> {
     }
   }
 
+  Future<void> _handleHistorialNavigation(BuildContext context) async {
+    if (widget.onViewPurchaseHistory != null) {
+      widget.onViewPurchaseHistory!();
+      return;
+    }
+
+    await AppNavigator.toHistorialProducto(
+      context,
+      product: _product,
+      token: widget.token,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasStock = _product.stock > 0;
@@ -225,7 +238,7 @@ class _ProductDetailAdminScreenState extends State<ProductDetailAdminScreen> {
                       width: double.infinity,
                       height: 50,
                       child: OutlinedButton.icon(
-                        onPressed: widget.onViewPurchaseHistory ?? () {},
+                        onPressed: () => _handleHistorialNavigation(context),
                         icon: const Icon(
                           Icons.history_rounded,
                           size: 20,
