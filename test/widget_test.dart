@@ -3,8 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:farmayopin/main.dart';
 
 void main() {
-  testWidgets('LoginScreen smoke test: verifica elementos del formulario', (WidgetTester tester) async {
+  testWidgets('LoginScreen smoke test: verifica elementos del formulario', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const FarmaYopinApp());
+    await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
     // Verifica que el logo y el texto de bienvenida estén presentes
@@ -18,16 +21,22 @@ void main() {
     await tester.tap(find.text('Iniciar sesión'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Por favor ingresa tu correo electrónico'), findsOneWidget);
+    expect(
+      find.text('Por favor ingresa tu correo electrónico'),
+      findsOneWidget,
+    );
     expect(find.text('Por favor ingresa tu contraseña'), findsOneWidget);
   });
 
-  testWidgets('Navegación de LoginScreen a RegisterScreen y retorno', (WidgetTester tester) async {
+  testWidgets('Navegación de LoginScreen a RegisterScreen y retorno', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() => tester.view.resetPhysicalSize());
 
     await tester.pumpWidget(const FarmaYopinApp());
+    await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
     // Toca en "Regístrate"

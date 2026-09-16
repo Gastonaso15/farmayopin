@@ -39,8 +39,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     (Icons.person_outline_rounded, 'Mis datos'),
     (Icons.location_on_outlined, 'Dirección de entrega'),
     (Icons.credit_card_outlined, 'Método de pago'),
-    (Icons.notifications_outlined, 'Notificaciones'),
-    (Icons.help_outline_rounded, 'Ayuda y soporte'),
   ];
 
   @override
@@ -213,10 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: i == _menuItems.length - 1
                       ? null
                       : const Border(
-                          bottom: BorderSide(
-                            width: 1,
-                            color: AppColors.border,
-                          ),
+                          bottom: BorderSide(width: 1, color: AppColors.border),
                         ),
                 ),
                 child: Row(
