@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
 import '../../core/constants/api_constants.dart';
+import '../local/compra_local_database.dart';
 import '../models/auth_response.dart';
 import '../models/login_request.dart';
 import '../models/register_request.dart';
@@ -139,5 +141,46 @@ class AuthService {
         },
       );
     } catch (_) {}
+  }
+
+  /// Comprueba rápidamente si el servidor backend se encuentra alcanzable.
+  Future<bool> checkServerConnection({Duration timeout = const Duration(seconds: 2)}) async {
+    final uri = Uri.parse('${ApiConstants.baseUrl}/api/productos');
+    try {
+      final response = await _client.get(
+        uri,
+        headers: {'Accept': 'application/json'},
+      ).timeout(timeout);
+      // Cualquier respuesta del servidor (incluso 401/403) demuestra que hay conectividad
+      return response.statusCode > 0;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Realiza la autenticación local offline contra la base de datos SQLite.
+  /// Retorna un [AuthResponse] reconstruido a partir de la sesión guardada
+  /// o lanza un [AuthException] si las credenciales no coinciden o no existen.
+  Future<AuthResponse> loginLocal({
+    required String email,
+    required String password,
+    CompraLocalDatabase? localDb,
+  }) async {
+    final db = localDb ?? CompraLocalDatabase();
+    final isValid = await db.validateLocalCredentials(email, password);
+    if (!isValid) {
+      throw AuthException(
+        'Credenciales inválidas o no existen datos guardados localmente para este usuario.',
+      );
+    }
+
+    final session = await db.getSessionByEmail(email);
+    if (session == null) {
+      throw AuthException(
+        'No se encontró la sesión local guardada para este usuario.',
+      );
+    }
+
+    return session.toAuthResponse();
   }
 }

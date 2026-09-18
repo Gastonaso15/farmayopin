@@ -1,29 +1,91 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../data/local/compra_local_database.dart';
+import '../../../../data/services/auth_service.dart';
+import '../../../../data/services/compra_service.dart';
+import '../../../../routing/app_navigator.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 
-/// Pantalla de carga (splash) mostrada al iniciar la app, adaptada del
-/// diseño de Figma "Pantalladecarga". Muestra la marca brevemente y luego
-/// navega al login: la app no persiste sesión entre lanzamientos, así que
-/// no hay nada que "verificar" aquí, solo una presentación de marca.
+/// Pantalla de carga (splash) mostrada al iniciar la app.
+/// Verifica si existe una sesión guardada activa ('Mantener sesión iniciada').
+/// - Si hay sesión y conexión: ingresa al Home correspondiente y sincroniza compras.
+/// - Si hay sesión pero no hay conexión: ingresa al modo local offline (Historial).
+/// - Si no hay sesión: navega a la pantalla de Login.
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final CompraLocalDatabase? localDatabase;
+  final AuthService? authService;
+  final CompraService? compraService;
+
+  const SplashScreen({
+    super.key,
+    this.localDatabase,
+    this.authService,
+    this.compraService,
+  });
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  late final CompraLocalDatabase _localDb;
+  late final AuthService _authService;
+  late final CompraService _compraService;
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-    });
+    _localDb = widget.localDatabase ?? CompraLocalDatabase();
+    _authService = widget.authService ?? AuthService();
+    _compraService =
+        widget.compraService ?? CompraService(localDatabase: _localDb);
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    // Espera mínima para mostrar la identidad de marca
+    await Future.delayed(const Duration(milliseconds: 1200));
+    if (!mounted) return;
+
+    try {
+      final session = await _localDb.getActiveSession();
+
+      if (session != null) {
+        final isOnline = await _authService.checkServerConnection(
+          timeout: const Duration(milliseconds: 1800),
+        );
+
+        if (!mounted) return;
+
+        if (isOnline) {
+          // Sincronizar en segundo plano compras de cliente
+          _compraService.syncHistorialConServidor(
+            token: session.token,
+            userEmail: session.email,
+          );
+          AppNavigator.toHomeForRole(context, session.toAuthResponse());
+          return;
+        } else {
+          // Iniciar en modo offline para consulta local del historial de compras
+          AppNavigator.toOfflineHistorial(context, userEmail: session.email);
+          return;
+        }
+      }
+    } catch (_) {
+      // En caso de cualquier error, proceder al login habitual
+    }
+
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => LoginScreen(
+          localDatabase: _localDb,
+          authService: _authService,
+          compraService: _compraService,
+        ),
+      ),
+    );
   }
 
   @override

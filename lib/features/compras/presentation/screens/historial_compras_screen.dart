@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_screen_header.dart';
 import '../../../../core/widgets/client_bottom_nav.dart';
+import '../../../../data/local/compra_local_database.dart';
 import '../../../../data/models/compra_model.dart';
 import '../../../../data/services/cart_service.dart';
 import '../../../../data/services/compra_service.dart';
@@ -10,16 +11,24 @@ import '../../../../routing/app_navigator.dart';
 
 /// Lista del historial de compras del cliente (GET /api/compras). Cada
 /// tarjeta lleva al detalle (DetalleCompraScreen).
+///
+/// Soporta persistencia y replicación local en SQLite, permitiendo consultar
+/// las compras previas del usuario cuando no hay conexión a internet o el
+/// servidor se encuentra inaccesible.
 class HistorialComprasScreen extends StatefulWidget {
   final String? token;
+  final String? userEmail;
   final CompraService? compraService;
   final CartService? cartService;
+  final bool isOfflineMode;
 
   const HistorialComprasScreen({
     super.key,
     this.token,
+    this.userEmail,
     this.compraService,
     this.cartService,
+    this.isOfflineMode = false,
   });
 
   @override
@@ -34,6 +43,8 @@ class _HistorialComprasScreenState extends State<HistorialComprasScreen> {
   List<CompraModel> _compras = [];
   bool _isLoading = true;
   String? _error;
+  bool _isOffline = false;
+  String? _offlineNotice;
   int _cartItemCount = 0;
 
   @override
@@ -42,7 +53,9 @@ class _HistorialComprasScreenState extends State<HistorialComprasScreen> {
     _compraService = widget.compraService ?? CompraService();
     _cartService = widget.cartService ?? CartService();
     _loadHistorial();
-    _refreshCartCount();
+    if (!widget.isOfflineMode) {
+      _refreshCartCount();
+    }
   }
 
   Future<void> _refreshCartCount() async {
@@ -57,11 +70,41 @@ class _HistorialComprasScreenState extends State<HistorialComprasScreen> {
       _isLoading = true;
       _error = null;
     });
+
+    if (widget.isOfflineMode) {
+      try {
+        final localDb = CompraLocalDatabase();
+        final localCompras =
+            await localDb.getComprasByUser(widget.userEmail ?? '');
+        if (!mounted) return;
+        setState(() {
+          _compras = localCompras;
+          _isOffline = true;
+          _offlineNotice =
+              'Modo sin conexión: mostrando historial guardado localmente en SQLite.';
+          _isLoading = false;
+        });
+        return;
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _error = 'Error al cargar compras locales: $e';
+          _isLoading = false;
+        });
+        return;
+      }
+    }
+
     try {
-      final compras = await _compraService.getHistorial(token: widget.token);
+      final result = await _compraService.getHistorialResult(
+        token: widget.token,
+        userEmail: widget.userEmail,
+      );
       if (!mounted) return;
       setState(() {
-        _compras = compras;
+        _compras = result.compras;
+        _isOffline = result.isFromLocalDatabase;
+        _offlineNotice = result.noticeMessage;
         _isLoading = false;
       });
     } on CompraException catch (e) {
@@ -74,6 +117,17 @@ class _HistorialComprasScreenState extends State<HistorialComprasScreen> {
   }
 
   Future<void> _onNavTap(int index) async {
+    if (widget.isOfflineMode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Esta función requiere conexión con el servidor.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     if (index == 3) return; // ya estamos en Historial
     if (index == 2) {
       await AppNavigator.toCart(context, token: widget.token);
@@ -108,15 +162,120 @@ class _HistorialComprasScreenState extends State<HistorialComprasScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const AppScreenHeader(title: 'Historial de Compras'),
+            widget.isOfflineMode
+                ? AppScreenHeader(
+                    title: 'Historial (Sin conexión)',
+                    onBack: () => AppNavigator.toLoginAndClearStack(context),
+                    trailing: IconButton(
+                      tooltip: 'Cerrar sesión',
+                      icon: const Icon(
+                        Icons.logout_rounded,
+                        color: AppColors.error,
+                      ),
+                      onPressed: () async {
+                        await CompraLocalDatabase().clearActiveSession();
+                        if (!context.mounted) return;
+                        AppNavigator.toLoginAndClearStack(context);
+                      },
+                    ),
+                  )
+                : const AppScreenHeader(title: 'Historial de Compras'),
+            if (_isOffline && !_isLoading && _error == null)
+              _buildOfflineBanner(),
             Expanded(child: _buildBody()),
           ],
         ),
       ),
-      bottomNavigationBar: ClientBottomNav(
-        currentIndex: 3,
-        cartCount: _cartItemCount,
-        onTap: _onNavTap,
+      bottomNavigationBar: widget.isOfflineMode
+          ? Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 10,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(color: AppColors.border),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.cloud_off_rounded,
+                    color: AppColors.textMuted,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Modo sin conexión',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () async {
+                      await CompraLocalDatabase().clearActiveSession();
+                      if (!context.mounted) return;
+                      AppNavigator.toLoginAndClearStack(context);
+                    },
+                    icon: const Icon(
+                      Icons.logout_rounded,
+                      size: 18,
+                      color: AppColors.error,
+                    ),
+                    label: const Text(
+                      'Cerrar sesión',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ClientBottomNav(
+              currentIndex: 3,
+              cartCount: _cartItemCount,
+              onTap: _onNavTap,
+            ),
+    );
+  }
+
+  Widget _buildOfflineBanner() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFDBA74)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.cloud_off_rounded,
+            color: Color(0xFFC2410C),
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _offlineNotice ??
+                  'Modo sin conexión: mostrando historial guardado localmente en SQLite.',
+              style: const TextStyle(
+                color: Color(0xFF9A3412),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

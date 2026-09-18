@@ -103,10 +103,33 @@ class AppNavigator {
     );
   }
 
-  static Future<void> toHistorial(BuildContext context, {String? token}) {
+  static Future<void> toHistorial(
+    BuildContext context, {
+    String? token,
+    String? userEmail,
+    bool isOfflineMode = false,
+  }) {
     return Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => HistorialComprasScreen(token: token),
+        builder: (_) => HistorialComprasScreen(
+          token: token,
+          userEmail: userEmail,
+          isOfflineMode: isOfflineMode,
+        ),
+      ),
+    );
+  }
+
+  static void toOfflineHistorial(
+    BuildContext context, {
+    required String userEmail,
+  }) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => HistorialComprasScreen(
+          userEmail: userEmail,
+          isOfflineMode: true,
+        ),
       ),
     );
   }

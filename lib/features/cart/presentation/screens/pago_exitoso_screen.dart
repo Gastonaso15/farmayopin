@@ -22,7 +22,11 @@ class PagoExitosoScreen extends StatelessWidget {
 
   Future<void> _verHistorial(BuildContext context) async {
     Navigator.of(context).popUntil((route) => route.isFirst);
-    await AppNavigator.toHistorial(context, token: token);
+    await AppNavigator.toHistorial(
+      context,
+      token: token,
+      userEmail: compra.clienteEmail,
+    );
   }
 
   @override

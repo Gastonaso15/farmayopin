@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_screen_header.dart';
 import '../../../../core/widgets/client_bottom_nav.dart';
+import '../../../../data/local/compra_local_database.dart';
 import '../../../../data/models/cart_item_model.dart';
 import '../../../../data/models/cart_model.dart';
 import '../../../../data/models/compra_model.dart';
@@ -43,6 +44,17 @@ class _ConfirmPurchaseScreenState extends State<ConfirmPurchaseScreen> {
       final compraJson = await _cartService.pagarCarrito(token: widget.token);
       if (!mounted) return;
       final compra = CompraModel.fromJson(compraJson);
+
+      // Replicar inmediatamente en SQLite local para disponibilidad offline
+      if (compra.clienteEmail.isNotEmpty) {
+        try {
+          await CompraLocalDatabase().saveCompra(
+            compra,
+            userEmail: compra.clienteEmail,
+          );
+        } catch (_) {}
+      }
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) =>

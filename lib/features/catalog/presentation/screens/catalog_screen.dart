@@ -73,7 +73,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
   }
 
   Future<void> _openHistorial() async {
-    await AppNavigator.toHistorial(context, token: widget.token);
+    await AppNavigator.toHistorial(
+      context,
+      token: widget.token,
+      userEmail: widget.email,
+    );
     _refreshCartCount();
   }
 

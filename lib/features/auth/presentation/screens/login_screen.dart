@@ -2,17 +2,27 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
-import '../../../../routing/app_navigator.dart';
+import '../../../../data/local/compra_local_database.dart';
 import '../../../../data/models/auth_response.dart';
 import '../../../../data/models/login_request.dart';
+import '../../../../data/models/user_session_model.dart';
 import '../../../../data/services/auth_service.dart';
+import '../../../../data/services/compra_service.dart';
 import '../../../../core/widgets/brand_logo.dart';
+import '../../../../routing/app_navigator.dart';
 import '../widgets/custom_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService? authService;
+  final CompraLocalDatabase? localDatabase;
+  final CompraService? compraService;
 
-  const LoginScreen({super.key, this.authService});
+  const LoginScreen({
+    super.key,
+    this.authService,
+    this.localDatabase,
+    this.compraService,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -24,13 +34,38 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
 
   late final AuthService _authService;
+  late final CompraLocalDatabase _localDb;
+  late final CompraService _compraService;
+
   bool _isPasswordObscured = true;
   bool _isLoading = false;
+  bool _rememberMe = false;
+  bool _hasOfflineData = false;
+  String? _savedEmail;
 
   @override
   void initState() {
     super.initState();
     _authService = widget.authService ?? AuthService();
+    _localDb = widget.localDatabase ?? CompraLocalDatabase();
+    _compraService = widget.compraService ?? CompraService(localDatabase: _localDb);
+    _checkSavedSession();
+  }
+
+  Future<void> _checkSavedSession() async {
+    try {
+      final session = await _localDb.getActiveSession();
+      if (session != null && mounted) {
+        setState(() {
+          _rememberMe = session.rememberMe;
+          _savedEmail = session.email;
+          _hasOfflineData = true;
+          if (_emailController.text.isEmpty) {
+            _emailController.text = session.email;
+          }
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -52,13 +87,44 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
     try {
       final request = LoginRequest(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+        email: email,
+        password: password,
       );
 
       final AuthResponse response = await _authService.login(request);
+
+      // 1. Sincronizar automáticamente el historial de compras local cada vez que se inicia sesión
+      if (response.rol == UserRole.cliente) {
+        try {
+          await _compraService.syncHistorialConServidor(
+            token: response.token,
+            userEmail: response.email,
+          );
+        } catch (_) {
+          // No interrumpir el flujo del usuario si la sincronización inmediata falla
+        }
+      }
+
+      // 2. Persistir o limpiar sesión según la opción 'Mantener sesión iniciada'
+      if (_rememberMe) {
+        final userSession = UserSessionModel(
+          email: response.email,
+          nombre: response.nombre,
+          token: response.token,
+          rol: response.rol,
+          rememberMe: true,
+          isActive: true,
+          lastLogin: DateTime.now(),
+        );
+        await _localDb.saveSession(userSession, plainPassword: password);
+      } else {
+        await _localDb.clearActiveSession();
+      }
 
       if (!mounted) return;
 
@@ -76,6 +142,49 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      // Detectar fallo por falta de conexión al servidor y habilitar login local
+      final isNetworkError = e is AuthException &&
+          (e.message.contains('No se pudo conectar') ||
+              e.message.contains('Error de comunicación') ||
+              e.message.contains('SocketException'));
+
+      if (isNetworkError) {
+        final isValidLocal =
+            await _localDb.validateLocalCredentials(email, password);
+
+        if (isValidLocal) {
+          final session = await _localDb.getSessionByEmail(email);
+          if (session != null && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Sin conexión con el servidor. Accediendo al historial de compras en modo local.',
+                ),
+                backgroundColor: AppColors.primary,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            AppNavigator.toOfflineHistorial(context, userEmail: session.email);
+            return;
+          }
+        } else {
+          // Intentar verificar si al menos hay compras guardadas de ese email
+          final localCompras = await _localDb.getComprasByUser(email);
+          if (localCompras.isEmpty && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Sin conexión con el servidor. No hay datos ni credenciales guardadas localmente para este usuario.',
+                ),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+        }
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
@@ -90,6 +199,11 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     }
+  }
+
+  Future<void> _handleDirectOfflineAccess() async {
+    if (_savedEmail == null) return;
+    AppNavigator.toOfflineHistorial(context, userEmail: _savedEmail!);
   }
 
   @override
@@ -172,33 +286,86 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 6),
 
-                    // Olvidé mi contraseña
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Recuperación de contraseña próximamente.',
+                    // Fila: Mantener sesión iniciada & Olvidé mi contraseña
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _rememberMe = !_rememberMe;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(6),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4,
+                                horizontal: 2,
                               ),
-                              behavior: SnackBarBehavior.floating,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: Checkbox(
+                                      value: _rememberMe,
+                                      activeColor: AppColors.primary,
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      onChanged: (val) {
+                                        setState(() {
+                                          _rememberMe = val ?? false;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Flexible(
+                                    child: Text(
+                                      'Mantener sesión iniciada',
+                                      style: TextStyle(
+                                        color: AppColors.textDark,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          );
-                        },
-                        child: const Text(
-                          '¿Olvidaste tu contraseña?',
-                          style: TextStyle(
-                            color: AppColors.link,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
+                        GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Recuperación de contraseña próximamente.',
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(
+                              color: AppColors.link,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
                     // Botón de Iniciar Sesión
                     Container(
@@ -244,6 +411,39 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                       ),
                     ),
+
+                    // Botón de acceso sin conexión si hay sesión/datos previos
+                    if (_hasOfflineData && _savedEmail != null) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _handleDirectOfflineAccess,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                          side: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.cloud_off_rounded,
+                          size: 18,
+                          color: AppColors.primary,
+                        ),
+                        label: Text(
+                          'Ver historial sin conexión ($_savedEmail)',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
 
                     // Link de Registro
