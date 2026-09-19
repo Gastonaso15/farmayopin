@@ -33,15 +33,43 @@ class ProductModel {
   }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    final nombre = json['nombre'] as String? ?? '';
+    final detalle = json['detalle'] as String? ?? '';
     return ProductModel(
       id: json['id'] as int? ?? 0,
-      nombre: json['nombre'] as String? ?? '',
+      nombre: nombre,
       precio: (json['precio'] as num?)?.toDouble() ?? 0.0,
-      detalle: json['detalle'] as String? ?? '',
+      detalle: detalle,
       foto: json['foto'] as String? ?? '',
       stock: json['stock'] as int? ?? 0,
-      categoria: json['categoria'] as String? ?? 'Medicamentos',
+      categoria: json['categoria'] as String? ??
+          _inferirCategoria(nombre, detalle),
     );
+  }
+
+  static String _inferirCategoria(String nombre, String detalle) {
+    final texto = '$nombre $detalle'.toLowerCase();
+    if (texto.contains('vitamina') ||
+        texto.contains('vitamín') ||
+        texto.contains('suplemento') ||
+        texto.contains('mineral')) {
+      return 'Vitaminas';
+    }
+    if (texto.contains('alcohol') ||
+        texto.contains('solar') ||
+        texto.contains('fps') ||
+        texto.contains('crema') ||
+        texto.contains('gel') ||
+        texto.contains('termómetro') ||
+        texto.contains('termometro') ||
+        texto.contains('gasas') ||
+        texto.contains('venda') ||
+        texto.contains('primeros auxilios') ||
+        texto.contains('higiene') ||
+        texto.contains('cuidado')) {
+      return 'Cuidado Personal';
+    }
+    return 'Medicamentos';
   }
 
   Map<String, dynamic> toJson() {
