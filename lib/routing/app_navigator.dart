@@ -8,6 +8,8 @@ import '../data/models/cart_model.dart';
 import '../features/cart/presentation/screens/cart_screen.dart';
 import '../features/cart/presentation/screens/confirm_purchase_screen.dart';
 import '../data/models/product_model.dart';
+import '../data/services/catalog_service.dart';
+import '../features/home/presentation/screens/home_screen.dart';
 import '../features/catalog/presentation/screens/catalog_screen.dart';
 import '../features/catalog/presentation/screens/create_product_screen.dart';
 import '../features/catalog/presentation/screens/edit_product_screen.dart';
@@ -16,7 +18,11 @@ import '../features/catalog/presentation/screens/product_detail_admin_screen.dar
 import '../features/catalog/presentation/screens/product_detail_client_screen.dart';
 import '../features/catalog/presentation/screens/historial_compras_producto_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
+import '../features/profile/presentation/screens/mis_datos_screen.dart';
+import '../features/profile/presentation/screens/direccion_entrega_screen.dart';
+import '../features/profile/presentation/screens/metodo_pago_screen.dart';
 import '../data/models/compra_model.dart';
+import '../data/services/compra_service.dart';
 import '../features/compras/presentation/screens/detalle_compra_screen.dart';
 import '../features/compras/presentation/screens/historial_compras_screen.dart';
 
@@ -28,11 +34,49 @@ class AppNavigator {
       MaterialPageRoute(
         builder: (_) => auth.rol == UserRole.admin
             ? AdminDashboardScreen(token: auth.token, nombre: auth.nombre)
-            : CatalogScreen(
+            : HomeScreen(
                 token: auth.token,
                 nombre: auth.nombre,
                 email: auth.email,
               ),
+      ),
+    );
+  }
+
+  static Future<void> toHome(
+    BuildContext context, {
+    required String token,
+    required String nombre,
+    required String email,
+  }) {
+    return Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => HomeScreen(
+          token: token,
+          nombre: nombre,
+          email: email,
+        ),
+      ),
+    );
+  }
+
+  static Future<void> toCatalog(
+    BuildContext context, {
+    String? token,
+    String nombre = '',
+    String email = '',
+    String? initialCategory,
+    CatalogService? catalogService,
+  }) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CatalogScreen(
+          token: token,
+          nombre: nombre,
+          email: email,
+          initialCategory: initialCategory,
+          catalogService: catalogService,
+        ),
       ),
     );
   }
@@ -103,6 +147,42 @@ class AppNavigator {
     );
   }
 
+  static Future<void> toMisDatos(
+    BuildContext context, {
+    required String token,
+    required String nombre,
+    required String email,
+  }) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            MisDatosScreen(token: token, nombre: nombre, email: email),
+      ),
+    );
+  }
+
+  static Future<void> toDireccionEntrega(
+    BuildContext context, {
+    String? token,
+  }) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DireccionEntregaScreen(token: token),
+      ),
+    );
+  }
+
+  static Future<void> toMetodoPago(
+    BuildContext context, {
+    String? token,
+  }) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MetodoPagoScreen(token: token),
+      ),
+    );
+  }
+
   static Future<void> toHistorial(
     BuildContext context, {
     String? token,
@@ -123,12 +203,14 @@ class AppNavigator {
   static void toOfflineHistorial(
     BuildContext context, {
     required String userEmail,
+    CompraService? compraService,
   }) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => HistorialComprasScreen(
           userEmail: userEmail,
           isOfflineMode: true,
+          compraService: compraService,
         ),
       ),
     );

@@ -1,3 +1,5 @@
+import '../../core/constants/api_constants.dart';
+
 class ProductModel {
   final int id;
   final String nombre;
@@ -27,7 +29,7 @@ class ProductModel {
       return foto;
     }
     final cleanPath = foto.startsWith('/') ? foto.substring(1) : foto;
-    return 'http://localhost:8080/$cleanPath';
+    return '${ApiConstants.baseUrl}/$cleanPath';
   }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {

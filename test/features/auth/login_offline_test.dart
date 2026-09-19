@@ -120,7 +120,6 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
-      // Pre-guardar sesión y compra en la base SQLite local
       final session = UserSessionModel(
         email: 'cliente@example.com',
         nombre: 'Cliente Offline',
@@ -130,7 +129,6 @@ void main() {
         isActive: true,
         lastLogin: DateTime.now(),
       );
-      await localDb.saveSession(session, plainPassword: 'password123');
 
       final compra = CompraModel(
         id: 999,
@@ -149,7 +147,11 @@ void main() {
           ),
         ],
       );
-      await localDb.saveCompra(compra, userEmail: 'cliente@example.com');
+
+      await tester.runAsync(() async {
+        await localDb.saveSession(session, plainPassword: 'password123');
+        await localDb.saveCompra(compra, userEmail: 'cliente@example.com');
+      });
 
       // AuthService que simula caída de red (SocketException)
       final failingClient = MockClient((_) async {
@@ -172,7 +174,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Completar campos con las credenciales locales
       await tester.enterText(
         find.widgetWithText(TextFormField, 'ejemplo@correo.com'),
         'cliente@example.com',
@@ -182,10 +183,16 @@ void main() {
         'password123',
       );
 
-      // Presionar Iniciar sesión
-      await tester.tap(find.text('Iniciar sesión'));
+      // Presionar Iniciar sesión y permitir que las consultas SQLite FFI finalicen
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Iniciar sesión'));
+        await Future.delayed(const Duration(milliseconds: 300));
+      });
       await tester.pump();
-      await tester.pumpAndSettle();
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 300));
+      });
+      await tester.pump();
 
       // Debe haber ingresado a la pantalla de historial offline
       expect(find.text('Historial (Sin conexión)'), findsOneWidget);
@@ -214,7 +221,9 @@ void main() {
         isActive: true,
         lastLogin: DateTime.now(),
       );
-      await localDb.saveSession(session, plainPassword: 'password123');
+      await tester.runAsync(() async {
+        await localDb.saveSession(session, plainPassword: 'password123');
+      });
 
       await tester.pumpWidget(
         MaterialApp(
@@ -226,6 +235,9 @@ void main() {
           ),
         ),
       );
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 200));
+      });
       await tester.pumpAndSettle();
 
       // Debe aparecer el botón directo para ver historial sin conexión
@@ -235,8 +247,12 @@ void main() {
       );
 
       // Tocar en el botón navega directamente al historial offline
-      await tester.tap(find.textContaining('Ver historial sin conexión'));
-      await tester.pumpAndSettle();
+      await tester.runAsync(() async {
+        await tester.tap(find.textContaining('Ver historial sin conexión'));
+        await Future.delayed(const Duration(milliseconds: 300));
+      });
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Historial (Sin conexión)'), findsOneWidget);
     });

@@ -42,6 +42,8 @@ class CompraService {
   })  : _client = client ?? http.Client(),
         _localDb = localDatabase ?? CompraLocalDatabase();
 
+  CompraLocalDatabase get localDatabase => _localDb;
+
   /// Obtiene el resultado del historial de compras con metadatos de sincronización.
   ///
   /// Si hay conexión exitosa con el servidor, descarga los datos y los replica

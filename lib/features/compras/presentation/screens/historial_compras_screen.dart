@@ -73,7 +73,7 @@ class _HistorialComprasScreenState extends State<HistorialComprasScreen> {
 
     if (widget.isOfflineMode) {
       try {
-        final localDb = CompraLocalDatabase();
+        final localDb = _compraService.localDatabase;
         final localCompras =
             await localDb.getComprasByUser(widget.userEmail ?? '');
         if (!mounted) return;

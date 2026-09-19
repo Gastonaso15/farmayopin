@@ -320,7 +320,7 @@ class _ConfirmPurchaseScreenState extends State<ConfirmPurchaseScreen> {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Av. de la Constitución 142, Piso 4B',
+                  'Calle 25 de Mayo 742, Apto 302, Maldonado',
                   style: TextStyle(color: AppColors.textMuted, fontSize: 12),
                 ),
               ],

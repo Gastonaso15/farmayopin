@@ -15,6 +15,7 @@ class CatalogScreen extends StatefulWidget {
   final String? token;
   final String nombre;
   final String email;
+  final String? initialCategory;
 
   const CatalogScreen({
     super.key,
@@ -22,6 +23,7 @@ class CatalogScreen extends StatefulWidget {
     this.token,
     this.nombre = '',
     this.email = '',
+    this.initialCategory,
   });
 
   @override
@@ -50,6 +52,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialCategory != null &&
+        widget.initialCategory!.trim().isNotEmpty) {
+      _selectedCategory = widget.initialCategory!;
+    }
     _catalogService = widget.catalogService ?? CatalogService();
     _loadProducts();
     _refreshCartCount();
@@ -370,7 +376,18 @@ class _CatalogScreenState extends State<CatalogScreen> {
         currentIndex: _selectedNavIndex,
         cartCount: _cartItemCount,
         onTap: (index) {
-          if (index == 2) {
+          if (index == 0) {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              AppNavigator.toHome(
+                context,
+                token: widget.token ?? '',
+                nombre: widget.nombre,
+                email: widget.email,
+              );
+            }
+          } else if (index == 2) {
             _openCart();
           } else if (index == 3) {
             _openHistorial();

@@ -185,6 +185,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _onMenuItemTap(int index) {
+    switch (index) {
+      case 0:
+        AppNavigator.toMisDatos(
+          context,
+          token: widget.token,
+          nombre: widget.nombre,
+          email: widget.email,
+        );
+        break;
+      case 1:
+        AppNavigator.toDireccionEntrega(
+          context,
+          token: widget.token,
+        );
+        break;
+      case 2:
+        AppNavigator.toMetodoPago(
+          context,
+          token: widget.token,
+        );
+        break;
+      default:
+        _proximamente(_menuItems[index].$2);
+    }
+  }
+
   Widget _buildMenu() {
     return Container(
       width: double.infinity,
@@ -199,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           for (int i = 0; i < _menuItems.length; i++)
             InkWell(
-              onTap: () => _proximamente(_menuItems[i].$2),
+              onTap: () => _onMenuItemTap(i),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(

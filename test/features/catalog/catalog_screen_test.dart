@@ -118,5 +118,51 @@ void main() {
       expect(find.text('Stock disponible: 24 unidades'), findsOneWidget);
       expect(find.text('Agregar al carrito'), findsOneWidget);
     });
+
+    testWidgets('CatalogScreen inicializa con initialCategory filtrado', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: CatalogScreen(
+            catalogService: MockCatalogService(),
+            initialCategory: 'Medicamentos',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ibuprofeno 400mg'), findsOneWidget);
+      expect(find.text('Vitamina C 1000mg'), findsNothing);
+    });
+
+    testWidgets('Tocar Inicio en bottom nav de CatalogScreen navega a HomeScreen', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: CatalogScreen(
+            catalogService: MockCatalogService(),
+            nombre: 'Gaston',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Inicio'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('¡Hola, Gaston! 👋'), findsOneWidget);
+    });
   });
 }

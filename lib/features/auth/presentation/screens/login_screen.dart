@@ -111,19 +111,23 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       // 2. Persistir o limpiar sesión según la opción 'Mantener sesión iniciada'
-      if (_rememberMe) {
-        final userSession = UserSessionModel(
-          email: response.email,
-          nombre: response.nombre,
-          token: response.token,
-          rol: response.rol,
-          rememberMe: true,
-          isActive: true,
-          lastLogin: DateTime.now(),
-        );
-        await _localDb.saveSession(userSession, plainPassword: password);
-      } else {
-        await _localDb.clearActiveSession();
+      try {
+        if (_rememberMe) {
+          final userSession = UserSessionModel(
+            email: response.email,
+            nombre: response.nombre,
+            token: response.token,
+            rol: response.rol,
+            rememberMe: true,
+            isActive: true,
+            lastLogin: DateTime.now(),
+          );
+          await _localDb.saveSession(userSession, plainPassword: password);
+        } else {
+          await _localDb.clearActiveSession();
+        }
+      } catch (dbError) {
+        debugPrint('Advertencia: no se pudo persistir la sesión local: $dbError');
       }
 
       if (!mounted) return;
@@ -164,7 +168,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 behavior: SnackBarBehavior.floating,
               ),
             );
-            AppNavigator.toOfflineHistorial(context, userEmail: session.email);
+            AppNavigator.toOfflineHistorial(
+              context,
+              userEmail: session.email,
+              compraService: _compraService,
+            );
             return;
           }
         } else {
@@ -185,6 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
@@ -203,7 +212,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleDirectOfflineAccess() async {
     if (_savedEmail == null) return;
-    AppNavigator.toOfflineHistorial(context, userEmail: _savedEmail!);
+    AppNavigator.toOfflineHistorial(
+      context,
+      userEmail: _savedEmail!,
+      compraService: _compraService,
+    );
   }
 
   @override
