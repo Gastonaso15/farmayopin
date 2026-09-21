@@ -40,7 +40,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
   bool _isLoading = true;
   String _selectedCategory = 'Todos';
   int _cartItemCount = 0;
-  int _selectedNavIndex = 1; // 1 = Catálogo
 
   final List<String> _categories = [
     'Todos',
@@ -76,25 +75,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
     } else {
       _refreshCartCount();
     }
-  }
-
-  Future<void> _openHistorial() async {
-    await AppNavigator.toHistorial(
-      context,
-      token: widget.token,
-      userEmail: widget.email,
-    );
-    _refreshCartCount();
-  }
-
-  Future<void> _openProfile() async {
-    await AppNavigator.toProfile(
-      context,
-      token: widget.token ?? '',
-      nombre: widget.nombre,
-      email: widget.email,
-    );
-    _refreshCartCount();
   }
 
   @override
@@ -373,30 +353,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
         ),
       ),
       bottomNavigationBar: ClientBottomNav(
-        currentIndex: _selectedNavIndex,
+        currentIndex: AppNavigator.tabCatalogo,
         cartCount: _cartItemCount,
-        onTap: (index) {
-          if (index == 0) {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            } else {
-              AppNavigator.toHome(
-                context,
-                token: widget.token ?? '',
-                nombre: widget.nombre,
-                email: widget.email,
-              );
-            }
-          } else if (index == 2) {
-            _openCart();
-          } else if (index == 3) {
-            _openHistorial();
-          } else if (index == 4) {
-            _openProfile();
-          } else {
-            setState(() => _selectedNavIndex = index);
-          }
-        },
+        onTap: (index) => AppNavigator.goToClientTab(
+          context,
+          index,
+          currentIndex: AppNavigator.tabCatalogo,
+          token: widget.token,
+          nombre: widget.nombre,
+          email: widget.email,
+          catalogService: _catalogService,
+        ),
       ),
     );
   }

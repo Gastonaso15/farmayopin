@@ -87,14 +87,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _onNavTap(int index) async {
-    if (index == 4) return; // ya estamos en Perfil
-    if (index == 2) {
-      await AppNavigator.toCart(context, token: widget.token);
-      _refreshCartCount();
-      return;
-    }
-    Navigator.of(context).pop();
+  void _onNavTap(int index) {
+    AppNavigator.goToClientTab(
+      context,
+      index,
+      currentIndex: AppNavigator.tabPerfil,
+      token: widget.token,
+      nombre: widget.nombre,
+      email: widget.email,
+    );
   }
 
   @override

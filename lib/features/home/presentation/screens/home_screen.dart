@@ -12,8 +12,8 @@ import '../../../catalog/presentation/widgets/product_card.dart';
 /// Pantalla principal (Home / Inicio) para clientes de FarmaYopin.
 ///
 /// Ofrece una experiencia acogedora con identidad visual de marca,
-/// carrusel interactivo de promociones, acceso rápido a categorías principales,
-/// beneficios del servicio y vitrina de productos destacados y ofertas.
+/// acceso rápido a categorías principales y vitrina de productos
+/// destacados y ofertas.
 class HomeScreen extends StatefulWidget {
   final String? token;
   final String nombre;
@@ -37,43 +37,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final CatalogService _catalogService;
   late final CartService _cartService;
-  final PageController _bannerController = PageController();
 
   List<ProductModel> _featuredProducts = [];
   List<ProductModel> _vitaminsProducts = [];
   bool _isLoading = true;
   int _cartItemCount = 0;
-  int _currentBannerIndex = 0;
-
-  final List<Map<String, dynamic>> _banners = [
-    {
-      'tag': 'DESTACADO DE LA SEMANA',
-      'title': '20% OFF en Vitaminas',
-      'subtitle': 'Refuerza tus defensas y energía diaria',
-      'category': 'Vitaminas',
-      'actionLabel': 'Ver ofertas',
-      'icon': Icons.health_and_safety_rounded,
-      'gradient': const [Color(0xFF0F766E), Color(0xFF0D9488)],
-    },
-    {
-      'tag': 'ENVÍO EXPRESS',
-      'title': 'Envíos Gratis a tu puerta',
-      'subtitle': 'En compras superiores a \$5.000',
-      'category': 'Todos',
-      'actionLabel': 'Explorar catálogo',
-      'icon': Icons.local_shipping_rounded,
-      'gradient': const [Color(0xFF0369A1), Color(0xFF0284C7)],
-    },
-    {
-      'tag': 'CALIDAD FARMACÉUTICA',
-      'title': 'Medicamentos Confiables',
-      'subtitle': 'Trazabilidad y respaldo garantizado',
-      'category': 'Medicamentos',
-      'actionLabel': 'Consultar',
-      'icon': Icons.verified_user_rounded,
-      'gradient': const [Color(0xFF047857), Color(0xFF10B981)],
-    },
-  ];
 
   final List<Map<String, dynamic>> _quickCategories = [
     {
@@ -116,12 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _refreshCartCount();
   }
 
-  @override
-  void dispose() {
-    _bannerController.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
@@ -158,25 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       _refreshCartCount();
     }
-  }
-
-  Future<void> _openHistorial() async {
-    await AppNavigator.toHistorial(
-      context,
-      token: widget.token,
-      userEmail: widget.email,
-    );
-    _refreshCartCount();
-  }
-
-  Future<void> _openProfile() async {
-    await AppNavigator.toProfile(
-      context,
-      token: widget.token ?? '',
-      nombre: widget.nombre,
-      email: widget.email,
-    );
-    _refreshCartCount();
   }
 
   Future<void> _openCatalog({String? category}) async {
@@ -264,10 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const SizedBox(height: 12),
                       _buildGreetingAndSearchBar(),
-                      const SizedBox(height: 16),
-                      _buildPromoBanners(),
-                      const SizedBox(height: 16),
-                      _buildServiceHighlights(),
                       const SizedBox(height: 24),
                       _buildCategoriesSection(),
                       const SizedBox(height: 24),
@@ -276,8 +215,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 24),
                         _buildVitaminsSection(),
                       ],
-                      const SizedBox(height: 24),
-                      _buildPharmacistConsultBanner(),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -290,19 +227,15 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: ClientBottomNav(
         currentIndex: 0, // 0 = Inicio
         cartCount: _cartItemCount,
-        onTap: (index) {
-          if (index == 0) {
-            // Ya en inicio
-          } else if (index == 1) {
-            _openCatalog();
-          } else if (index == 2) {
-            _openCart();
-          } else if (index == 3) {
-            _openHistorial();
-          } else if (index == 4) {
-            _openProfile();
-          }
-        },
+        onTap: (index) => AppNavigator.goToClientTab(
+          context,
+          index,
+          currentIndex: AppNavigator.tabInicio,
+          token: widget.token,
+          nombre: widget.nombre,
+          email: widget.email,
+          catalogService: _catalogService,
+        ),
       ),
     );
   }
@@ -396,24 +329,33 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE6FFFA),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.primaryLight.withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
+              GestureDetector(
+                onTap: () => AppNavigator.goToClientTab(
+                  context,
+                  AppNavigator.tabPerfil,
+                  token: widget.token,
+                  nombre: widget.nombre,
+                  email: widget.email,
                 ),
-                child: Center(
-                  child: Text(
-                    _inicial,
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE6FFFA),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primaryLight.withValues(alpha: 0.4),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _inicial,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
@@ -508,215 +450,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPromoBanners() {
-    return Column(
-      children: [
-        SizedBox(
-          height: 154,
-          child: PageView.builder(
-            controller: _bannerController,
-            itemCount: _banners.length,
-            onPageChanged: (index) {
-              setState(() => _currentBannerIndex = index);
-            },
-            itemBuilder: (context, index) {
-              final banner = _banners[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    gradient: LinearGradient(
-                      colors: banner['gradient'] as List<Color>,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: (banner['gradient'] as List<Color>).first
-                            .withValues(alpha: 0.28),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      // Icono decorativo de fondo
-                      Positioned(
-                        right: -10,
-                        bottom: -15,
-                        child: Icon(
-                          banner['icon'] as IconData,
-                          size: 110,
-                          color: Colors.white.withValues(alpha: 0.12),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                banner['tag'] as String,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  banner['title'] as String,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.4,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  banner['subtitle'] as String,
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            InkWell(
-                              onTap: () {
-                                final cat = banner['category'] as String;
-                                _openCatalog(
-                                  category: cat == 'Todos' ? null : cat,
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      banner['actionLabel'] as String,
-                                      style: TextStyle(
-                                        color: (banner['gradient']
-                                                as List<Color>)
-                                            .first,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Icon(
-                                      Icons.arrow_forward_rounded,
-                                      size: 14,
-                                      color: (banner['gradient'] as List<Color>)
-                                          .first,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Indicadores de banner (dots)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(_banners.length, (index) {
-            final isSelected = index == _currentBannerIndex;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              height: 6,
-              width: isSelected ? 18 : 6,
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : const Color(0xFFD1D5DB),
-                borderRadius: BorderRadius.circular(3),
-              ),
-            );
-          }),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildServiceHighlights() {
-    final features = [
-      {'icon': Icons.bolt_rounded, 'label': 'Envío Express'},
-      {'icon': Icons.verified_rounded, 'label': '100% Original'},
-      {'icon': Icons.medical_services_rounded, 'label': 'Recetas Online'},
-      {'icon': Icons.support_agent_rounded, 'label': 'Atención 24/7'},
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border, width: 1),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: features.map((f) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  f['icon'] as IconData,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  f['label'] as String,
-                  style: const TextStyle(
-                    color: AppColors.textDark,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
       ),
     );
   }
@@ -1038,69 +771,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildPharmacistConsultBanner() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x06000000),
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE6FFFA),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.medical_information_rounded,
-                color: AppColors.primary,
-                size: 26,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Farmacéuticos a tu servicio',
-                    style: TextStyle(
-                      color: AppColors.textDark,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    '¿Dudas con tu receta médica o posología? Estamos para ayudarte.',
-                    style: TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

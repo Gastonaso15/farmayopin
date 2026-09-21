@@ -25,11 +25,85 @@ import '../data/models/compra_model.dart';
 import '../data/services/compra_service.dart';
 import '../features/compras/presentation/screens/detalle_compra_screen.dart';
 import '../features/compras/presentation/screens/historial_compras_screen.dart';
+import 'app_session.dart';
 
 class AppNavigator {
   AppNavigator._();
 
+  /// Índices de las secciones de la barra de navegación inferior.
+  static const int tabInicio = 0;
+  static const int tabCatalogo = 1;
+  static const int tabCarrito = 2;
+  static const int tabHistorial = 3;
+  static const int tabPerfil = 4;
+
+  /// Lleva al usuario a una sección de la barra inferior desde cualquier
+  /// pantalla. Arma la pila como [Inicio, Sección], de modo que la flecha de
+  /// volver siempre regresa a Inicio y la pila nunca crece sin control.
+  ///
+  /// Si [currentIndex] coincide con [index] no hace nada (ya está ahí).
+  /// Los datos de sesión que no se pasen se toman de [AppSession].
+  static void goToClientTab(
+    BuildContext context,
+    int index, {
+    int? currentIndex,
+    String? token,
+    String? nombre,
+    String? email,
+    CatalogService? catalogService,
+  }) {
+    if (currentIndex != null && index == currentIndex) return;
+
+    final t = (token != null && token.isNotEmpty) ? token : AppSession.token;
+    final n = (nombre != null && nombre.isNotEmpty) ? nombre : AppSession.nombre;
+    final e = (email != null && email.isNotEmpty) ? email : AppSession.email;
+    final tokenOrNull = t.isEmpty ? null : t;
+
+    final navigator = Navigator.of(context);
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => HomeScreen(
+          token: tokenOrNull,
+          nombre: n,
+          email: e,
+          catalogService: catalogService,
+        ),
+      ),
+      (route) => false,
+    );
+
+    if (index == tabInicio) return;
+
+    navigator.push(
+      MaterialPageRoute(
+        builder: (_) {
+          switch (index) {
+            case tabCatalogo:
+              return CatalogScreen(
+                token: tokenOrNull,
+                nombre: n,
+                email: e,
+                catalogService: catalogService,
+              );
+            case tabCarrito:
+              return CartScreen(token: tokenOrNull);
+            case tabHistorial:
+              return HistorialComprasScreen(token: tokenOrNull, userEmail: e);
+            case tabPerfil:
+            default:
+              return ProfileScreen(token: t, nombre: n, email: e);
+          }
+        },
+      ),
+    );
+  }
+
   static void toHomeForRole(BuildContext context, AuthResponse auth) {
+    AppSession.start(
+      token: auth.token,
+      nombre: auth.nombre,
+      email: auth.email,
+    );
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => auth.rol == UserRole.admin
@@ -82,6 +156,7 @@ class AppNavigator {
   }
 
   static void toLoginAndClearStack(BuildContext context) {
+    AppSession.clear();
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,

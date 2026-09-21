@@ -62,4 +62,31 @@ class Validators {
     }
     return null;
   }
+
+  /// Valida la fecha de vencimiento de una tarjeta en formato MM/AA.
+  ///
+  /// Rechaza formatos inválidos, meses fuera de 1-12 y tarjetas vencidas.
+  /// Una tarjeta es válida hasta el último día de su mes de vencimiento.
+  /// [now] permite fijar la fecha actual (útil para pruebas).
+  static String? validateCardExpiry(String? value, {DateTime? now}) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) {
+      return 'Ingresa el vencimiento (MM/AA)';
+    }
+    final match = RegExp(r'^(\d{2})/(\d{2})$').firstMatch(text);
+    if (match == null) {
+      return 'Formato inválido (MM/AA)';
+    }
+    final month = int.parse(match.group(1)!);
+    final year = 2000 + int.parse(match.group(2)!);
+    if (month < 1 || month > 12) {
+      return 'Mes inválido';
+    }
+    final today = now ?? DateTime.now();
+    final expired = year < today.year || (year == today.year && month < today.month);
+    if (expired) {
+      return 'La tarjeta está vencida';
+    }
+    return null;
+  }
 }

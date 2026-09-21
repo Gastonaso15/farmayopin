@@ -132,9 +132,11 @@ class _CartScreenState extends State<CartScreen> {
       token: widget.token,
     );
 
+    // Tras pagar, ConfirmPurchaseScreen ya fue reemplazada por la pantalla de
+    // pago exitoso; solo vaciamos el carrito local (no hacemos pop, porque
+    // cerraría la pantalla de éxito que está encima).
     if (paid == true && mounted) {
       setState(() => _cart = CartModel.empty);
-      Navigator.of(context).pop(_cart);
     }
   }
 
@@ -181,9 +183,12 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   void _onNavTap(int index) {
-    if (index == 0 || index == 1) {
-      Navigator.of(context).pop(_cart);
-    }
+    AppNavigator.goToClientTab(
+      context,
+      index,
+      currentIndex: AppNavigator.tabCarrito,
+      token: widget.token,
+    );
   }
 
   Widget _buildItemsBadge() {

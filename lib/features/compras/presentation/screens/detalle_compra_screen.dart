@@ -49,14 +49,8 @@ class _DetalleCompraScreenState extends State<DetalleCompraScreen> {
     } on CartException catch (_) {}
   }
 
-  Future<void> _onNavTap(int index) async {
-    if (index == 3) return; // ya estamos en Historial
-    if (index == 2) {
-      await AppNavigator.toCart(context, token: widget.token);
-      _refreshCartCount();
-      return;
-    }
-    Navigator.of(context).pop();
+  void _onNavTap(int index) {
+    AppNavigator.goToClientTab(context, index, token: widget.token);
   }
 
   String _formatFecha(DateTime fecha) {

@@ -128,13 +128,13 @@ class _HistorialComprasScreenState extends State<HistorialComprasScreen> {
       );
       return;
     }
-    if (index == 3) return; // ya estamos en Historial
-    if (index == 2) {
-      await AppNavigator.toCart(context, token: widget.token);
-      _refreshCartCount();
-      return;
-    }
-    Navigator.of(context).pop();
+    AppNavigator.goToClientTab(
+      context,
+      index,
+      currentIndex: AppNavigator.tabHistorial,
+      token: widget.token,
+      email: widget.userEmail,
+    );
   }
 
   static const List<String> _meses = [

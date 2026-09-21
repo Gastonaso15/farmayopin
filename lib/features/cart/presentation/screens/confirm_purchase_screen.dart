@@ -8,6 +8,7 @@ import '../../../../data/models/cart_item_model.dart';
 import '../../../../data/models/cart_model.dart';
 import '../../../../data/models/compra_model.dart';
 import '../../../../data/services/cart_service.dart';
+import '../../../../routing/app_navigator.dart';
 import 'pago_exitoso_screen.dart';
 
 class ConfirmPurchaseScreen extends StatefulWidget {
@@ -143,9 +144,7 @@ class _ConfirmPurchaseScreenState extends State<ConfirmPurchaseScreen> {
   }
 
   void _onNavTap(int index) {
-    if (index == 0 || index == 1 || index == 2) {
-      Navigator.of(context).pop(false);
-    }
+    AppNavigator.goToClientTab(context, index, token: widget.token);
   }
 
   Widget _buildSectionTitle(String text) {

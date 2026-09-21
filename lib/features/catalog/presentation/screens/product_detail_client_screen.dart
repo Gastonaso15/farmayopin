@@ -6,6 +6,7 @@ import '../../../../core/widgets/client_bottom_nav.dart';
 import '../../../../core/widgets/stepper_button.dart';
 import '../../../../data/services/cart_service.dart';
 import '../../../../data/models/product_model.dart';
+import '../../../../routing/app_navigator.dart';
 
 class ProductDetailClientScreen extends StatefulWidget {
   final ProductModel product;
@@ -108,9 +109,7 @@ class _ProductDetailClientScreenState extends State<ProductDetailClientScreen> {
   }
 
   void _onNavTap(int index) {
-    if (index == 0 || index == 1) {
-      Navigator.of(context).pop();
-    }
+    AppNavigator.goToClientTab(context, index, token: widget.token);
   }
 
   Widget _buildImage() {

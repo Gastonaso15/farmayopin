@@ -31,7 +31,6 @@ class _MisDatosScreenState extends State<MisDatosScreen> {
   late final TextEditingController _nacimientoController;
 
   bool _isSaving = false;
-  bool _notificacionesEnabled = true;
 
   @override
   void initState() {
@@ -85,123 +84,6 @@ class _MisDatosScreenState extends State<MisDatosScreen> {
     );
   }
 
-  void _mostrarCambioPasswordModal() {
-    final passActualController = TextEditingController();
-    final passNuevaController = TextEditingController();
-    final passConfirmController = TextEditingController();
-    final modalFormKey = GlobalKey<FormState>();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: Form(
-            key: modalFormKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.border,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Cambiar contraseña',
-                  style: TextStyle(
-                    color: AppColors.textDark,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Ingresa tu contraseña actual y define una nueva.',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: passActualController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Contraseña actual',
-                    prefixIcon: Icon(Icons.lock_outline_rounded, size: 20),
-                  ),
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Ingresa tu contraseña actual' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: passNuevaController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Nueva contraseña',
-                    prefixIcon: Icon(Icons.lock_rounded, size: 20),
-                  ),
-                  validator: (v) => v != null && v.length < 6
-                      ? 'Debe tener al menos 6 caracteres'
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: passConfirmController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirmar nueva contraseña',
-                    prefixIcon: Icon(Icons.lock_clock_rounded, size: 20),
-                  ),
-                  validator: (v) {
-                    if (v != passNuevaController.text) {
-                      return 'Las contraseñas no coinciden';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (modalFormKey.currentState!.validate()) {
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Contraseña actualizada con éxito.'),
-                            backgroundColor: AppColors.success,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      }
-                    },
-                    child: const Text('Actualizar contraseña'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -224,8 +106,6 @@ class _MisDatosScreenState extends State<MisDatosScreen> {
                       _buildAvatarCard(),
                       const SizedBox(height: 18),
                       _buildPersonalInfoCard(),
-                      const SizedBox(height: 18),
-                      _buildPreferencesAndSecurityCard(),
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,
@@ -442,127 +322,6 @@ class _MisDatosScreenState extends State<MisDatosScreen> {
                   controller: _nacimientoController,
                   icon: Icons.cake_outlined,
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreferencesAndSecurityCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 1),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 6,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Seguridad y Notificaciones',
-            style: TextStyle(
-              color: AppColors.textDark,
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 14),
-          InkWell(
-            onTap: _mostrarCambioPasswordModal,
-            borderRadius: BorderRadius.circular(10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.lock_outline_rounded,
-                    size: 20,
-                    color: AppColors.primary,
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Contraseña',
-                          style: TextStyle(
-                            color: AppColors.textDark,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          '••••••••••••',
-                          style: TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    'Modificar',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Notificaciones de pedidos',
-                      style: TextStyle(
-                        color: AppColors.textDark,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      'Recibe alertas sobre el estado del envío y recetas',
-                      style: TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 11.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: _notificacionesEnabled,
-                activeThumbColor: AppColors.primary,
-                activeTrackColor: AppColors.primaryLight.withValues(alpha: 0.5),
-                onChanged: (val) {
-                  setState(() => _notificacionesEnabled = val);
-                },
               ),
             ],
           ),

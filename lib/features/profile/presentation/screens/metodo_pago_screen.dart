@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_screen_header.dart';
 import '../../../../data/models/tarjeta_model.dart';
 import '../../../../data/services/tarjeta_service.dart';
@@ -171,21 +172,6 @@ class _MetodoPagoScreenState extends State<MetodoPagoScreen> {
     }
   }
 
-  MetodoPagoModel get _tarjetaSeleccionada {
-    return _metodos.firstWhere(
-      (m) =>
-          m.isDefault &&
-          (m.tipo == TipoMetodoPago.tarjetaCredito ||
-              m.tipo == TipoMetodoPago.tarjetaDebito),
-      orElse: () => _metodos.firstWhere(
-        (m) =>
-            m.tipo == TipoMetodoPago.tarjetaCredito ||
-            m.tipo == TipoMetodoPago.tarjetaDebito,
-        orElse: () => _metodos.first,
-      ),
-    );
-  }
-
   Future<void> _establecerPredeterminado(String id) async {
     setState(() {
       for (int i = 0; i < _metodos.length; i++) {
@@ -352,12 +338,7 @@ class _MetodoPagoScreenState extends State<MetodoPagoScreen> {
                                 hintText: '08/29',
                                 counterText: '',
                               ),
-                              validator: (v) {
-                                if (v == null || !v.contains('/')) {
-                                  return 'Inválido (MM/AA)';
-                                }
-                                return null;
-                              },
+                              validator: Validators.validateCardExpiry,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -521,8 +502,6 @@ class _MetodoPagoScreenState extends State<MetodoPagoScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildVirtualCard(_tarjetaSeleccionada),
-                          const SizedBox(height: 20),
                           const Text(
                             'Tus métodos de pago',
                             style: TextStyle(
@@ -533,8 +512,6 @@ class _MetodoPagoScreenState extends State<MetodoPagoScreen> {
                           ),
                           const SizedBox(height: 12),
                           ..._metodos.map((m) => _buildPaymentItem(m)),
-                          const SizedBox(height: 16),
-                          _buildSecurityNote(),
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -543,161 +520,6 @@ class _MetodoPagoScreenState extends State<MetodoPagoScreen> {
             _buildBottomBar(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildVirtualCard(MetodoPagoModel tarjeta) {
-    final hasDetails = tarjeta.ultimosCuatro.isNotEmpty;
-    final titular = hasDetails ? tarjeta.titular : 'CLIENTE FARMAYOPIN';
-    final ultimos = hasDetails ? tarjeta.ultimosCuatro : '4532';
-    final vencimiento = hasDetails ? tarjeta.vencimiento : '08/29';
-
-    return Container(
-      width: double.infinity,
-      height: 195,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F766E), Color(0xFF134E4A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x350F766E),
-            blurRadius: 14,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Row(
-                children: [
-                  Icon(
-                    Icons.local_pharmacy_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'FarmaYOpin Pay',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                ],
-              ),
-              Icon(
-                Icons.contactless_rounded,
-                color: Colors.white.withValues(alpha: 0.8),
-                size: 24,
-              ),
-            ],
-          ),
-          // Chip EMV
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFCD34D),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFFF59E0B), width: 1),
-                ),
-                child: Center(
-                  child: Container(
-                    width: 28,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: const Color(0xFFD97706),
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          // Número de tarjeta
-          Text(
-            '••••  ••••  ••••  $ultimos',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 2,
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'TITULAR',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      titular,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'VENCE',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    vencimiento,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -831,34 +653,6 @@ class _MetodoPagoScreenState extends State<MetodoPagoScreen> {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSecurityNote() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFBBF7D0)),
-      ),
-      child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.lock_rounded, size: 18, color: Color(0xFF16A34A)),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Tus pagos están protegidos. No almacenamos tu código de seguridad (CVV). Toda la información se procesa bajo el estándar PCI-DSS.',
-              style: TextStyle(
-                color: Color(0xFF166534),
-                fontSize: 12,
-                height: 1.3,
-              ),
-            ),
           ),
         ],
       ),

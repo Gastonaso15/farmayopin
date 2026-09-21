@@ -17,15 +17,19 @@ class PagoExitosoScreen extends StatelessWidget {
       compra.items.fold(0, (sum, item) => sum + item.cantidad);
 
   void _volverAlInicio(BuildContext context) {
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    AppNavigator.goToClientTab(
+      context,
+      AppNavigator.tabInicio,
+      token: token,
+    );
   }
 
-  Future<void> _verHistorial(BuildContext context) async {
-    Navigator.of(context).popUntil((route) => route.isFirst);
-    await AppNavigator.toHistorial(
+  void _verHistorial(BuildContext context) {
+    AppNavigator.goToClientTab(
       context,
+      AppNavigator.tabHistorial,
       token: token,
-      userEmail: compra.clienteEmail,
+      email: compra.clienteEmail,
     );
   }
 
@@ -50,9 +54,10 @@ class PagoExitosoScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: ClientBottomNav(
-        currentIndex: 2,
+        currentIndex: -1,
         cartCount: 0,
-        onTap: (_) => _volverAlInicio(context),
+        onTap: (index) =>
+            AppNavigator.goToClientTab(context, index, token: token),
       ),
     );
   }

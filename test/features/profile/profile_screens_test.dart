@@ -93,7 +93,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verifica elementos de MetodoPagoScreen
-      expect(find.text('FarmaYOpin Pay'), findsOneWidget);
+      expect(find.text('FarmaYOpin Pay'), findsNothing);
       expect(find.text('Visa Crédito'), findsOneWidget);
       expect(find.text('Mercado Pago'), findsOneWidget);
       expect(find.text('Agregar tarjeta o método de pago'), findsOneWidget);
@@ -173,7 +173,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verifica métodos iniciales
-      expect(find.text('FarmaYOpin Pay'), findsOneWidget);
+      expect(find.text('FarmaYOpin Pay'), findsNothing);
       expect(find.text('Visa Crédito'), findsOneWidget);
       expect(find.text('Mastercard Débito'), findsOneWidget);
 

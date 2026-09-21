@@ -54,7 +54,7 @@ void main() {
   }
 
   group('HomeScreen Widget Tests', () {
-    testWidgets('Renderiza elementos principales: logo, saludo, banners y categorías',
+    testWidgets('Renderiza elementos principales: logo, saludo y categorías',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -73,8 +73,10 @@ void main() {
         findsOneWidget,
       );
 
-      // Banners promocionales
-      expect(find.text('20% OFF en Vitaminas'), findsOneWidget);
+      // El carrusel de promociones y los beneficios ya no se muestran
+      expect(find.text('20% OFF en Vitaminas'), findsNothing);
+      expect(find.text('DESTACADO DE LA SEMANA'), findsNothing);
+      expect(find.text('Envío Express'), findsNothing);
 
       // Categorías principales
       expect(find.text('Categorías Principales'), findsOneWidget);
