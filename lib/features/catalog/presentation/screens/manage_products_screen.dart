@@ -27,7 +27,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
   List<ProductModel> _products = [];
   bool _isLoading = true;
 
-  static const int _umbralStockBajo = 10;
+  static const int _umbralStockBajo = 5;
 
   @override
   void initState() {
