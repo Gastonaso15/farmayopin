@@ -54,20 +54,12 @@ class CatalogService {
         throw CatalogException(msg, response.statusCode);
       }
     } on SocketException {
-      // Si esta en modo offline, simula creacion exitosa local para pruebas
-      return ProductModel(
-        id: DateTime.now().millisecondsSinceEpoch,
-        nombre: request.nombre,
-        precio: request.precio,
-        detalle: request.detalle ?? '',
-        foto: request.foto ?? '',
-        stock: request.stock,
-      );
+      throw CatalogException('No se pudo conectar con el servidor.');
     } on http.ClientException {
-      throw CatalogException('Error de comunicacion con el servidor.');
+      throw CatalogException('Error de comunicación con el servidor.');
     } catch (e) {
       if (e is CatalogException) rethrow;
-      throw CatalogException('Ocurrio un error inesperado: $e');
+      throw CatalogException('Ocurrió un error inesperado: $e');
     }
   }
 
@@ -106,20 +98,12 @@ class CatalogService {
         throw CatalogException(msg, response.statusCode);
       }
     } on SocketException {
-      // Si esta en modo offline, simula actualizacion exitosa local
-      return ProductModel(
-        id: id,
-        nombre: request.nombre,
-        precio: request.precio,
-        detalle: request.detalle ?? '',
-        foto: request.foto ?? '',
-        stock: request.stock,
-      );
+      throw CatalogException('No se pudo conectar con el servidor.');
     } on http.ClientException {
-      throw CatalogException('Error de comunicacion con el servidor.');
+      throw CatalogException('Error de comunicación con el servidor.');
     } catch (e) {
       if (e is CatalogException) rethrow;
-      throw CatalogException('Ocurrio un error inesperado: $e');
+      throw CatalogException('Ocurrió un error inesperado: $e');
     }
   }
 
@@ -151,13 +135,12 @@ class CatalogService {
         throw CatalogException('Error en el servidor (${response.statusCode}).', response.statusCode);
       }
     } on SocketException {
-      // Si esta en modo offline, simula eliminacion exitosa local para pruebas
-      return;
+      throw CatalogException('No se pudo conectar con el servidor.');
     } on http.ClientException {
-      throw CatalogException('Error de comunicacion con el servidor.');
+      throw CatalogException('Error de comunicación con el servidor.');
     } catch (e) {
       if (e is CatalogException) rethrow;
-      throw CatalogException('Ocurrio un error inesperado: $e');
+      throw CatalogException('Ocurrió un error inesperado: $e');
     }
   }
 
@@ -198,12 +181,12 @@ class CatalogService {
             response.statusCode);
       }
     } on SocketException {
-      throw CatalogException('Error de comunicacion con el servidor.');
+      throw CatalogException('No se pudo conectar con el servidor.');
     } on http.ClientException {
-      throw CatalogException('Error de comunicacion con el servidor.');
+      throw CatalogException('Error de comunicación con el servidor.');
     } catch (e) {
       if (e is CatalogException) rethrow;
-      throw CatalogException('Ocurrio un error inesperado: $e');
+      throw CatalogException('Ocurrió un error inesperado: $e');
     }
   }
 
@@ -223,76 +206,23 @@ class CatalogService {
 
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(response.body);
-        return list.map((item) => ProductModel.fromJson(item as Map<String, dynamic>)).toList();
+        return list
+            .map((item) => ProductModel.fromJson(item as Map<String, dynamic>))
+            .toList();
       } else {
-        return getMockProducts();
+        final body = response.body.isNotEmpty ? jsonDecode(response.body) : {};
+        final msg = body is Map && body.containsKey('mensaje')
+            ? body['mensaje']
+            : 'Error al obtener productos (${response.statusCode}).';
+        throw CatalogException(msg.toString(), response.statusCode);
       }
     } on SocketException {
-      // Si el servidor está offline, usamos los productos mock de Figma
-      return getMockProducts();
+      throw CatalogException('No se pudo conectar con el servidor.');
     } on http.ClientException {
-      return getMockProducts();
-    } catch (_) {
-      return getMockProducts();
+      throw CatalogException('Error de comunicación con el servidor.');
+    } catch (e) {
+      if (e is CatalogException) rethrow;
+      throw CatalogException('Ocurrió un error inesperado: $e');
     }
-  }
-
-  static List<ProductModel> getMockProducts() {
-    return const [
-      ProductModel(
-        id: 1,
-        nombre: 'Vitamina C 1000mg',
-        precio: 12.99,
-        detalle: 'Suplemento antioxidante para fortalecer el sistema inmune.',
-        foto: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&q=80',
-        stock: 24,
-        categoria: 'Vitaminas',
-      ),
-      ProductModel(
-        id: 2,
-        nombre: 'Ibuprofeno 400mg',
-        precio: 3.45,
-        detalle: 'Antiinflamatorio y analgésico de rápida acción.',
-        foto: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=300&q=80',
-        stock: 150,
-        categoria: 'Medicamentos',
-      ),
-      ProductModel(
-        id: 3,
-        nombre: 'Protector Solar SPF50',
-        precio: 24.99,
-        detalle: 'Alta protección UVA/UVB resistente al agua.',
-        foto: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&q=80',
-        stock: 12,
-        categoria: 'Cuidado Personal',
-      ),
-      ProductModel(
-        id: 4,
-        nombre: 'Paracetamol 500mg',
-        precio: 2.99,
-        detalle: 'Alivio eficaz del dolor de cabeza y la fiebre.',
-        foto: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=300&q=80',
-        stock: 85,
-        categoria: 'Medicamentos',
-      ),
-      ProductModel(
-        id: 5,
-        nombre: 'Complejo B Multivitamínico',
-        precio: 15.50,
-        detalle: 'Energía y soporte para el sistema nervioso.',
-        foto: 'https://images.unsplash.com/photo-1577401239170-897942555fb3?w=300&q=80',
-        stock: 30,
-        categoria: 'Vitaminas',
-      ),
-      ProductModel(
-        id: 6,
-        nombre: 'Alcohol en Gel 250ml',
-        precio: 4.20,
-        detalle: 'Sanitizante antibacteriano instantáneo con aloe vera.',
-        foto: 'https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=300&q=80',
-        stock: 45,
-        categoria: 'Cuidado Personal',
-      ),
-    ];
   }
 }

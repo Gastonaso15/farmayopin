@@ -48,7 +48,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _authService = widget.authService ?? AuthService();
     _localDb = widget.localDatabase ?? CompraLocalDatabase();
-    _compraService = widget.compraService ?? CompraService(localDatabase: _localDb);
+    _compraService =
+        widget.compraService ?? CompraService(localDatabase: _localDb);
     _checkSavedSession();
   }
 
@@ -59,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           _rememberMe = session.rememberMe;
           _savedEmail = session.email;
-          _hasOfflineData = true;
+          _hasOfflineData = session.rol != UserRole.admin;
           if (_emailController.text.isEmpty) {
             _emailController.text = session.email;
           }
@@ -91,10 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     try {
-      final request = LoginRequest(
-        email: email,
-        password: password,
-      );
+      final request = LoginRequest(email: email, password: password);
 
       final AuthResponse response = await _authService.login(request);
 
@@ -127,7 +125,9 @@ class _LoginScreenState extends State<LoginScreen> {
           await _localDb.clearActiveSession();
         }
       } catch (dbError) {
-        debugPrint('Advertencia: no se pudo persistir la sesión local: $dbError');
+        debugPrint(
+          'Advertencia: no se pudo persistir la sesión local: $dbError',
+        );
       }
 
       if (!mounted) return;
@@ -147,18 +147,31 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       // Detectar fallo por falta de conexión al servidor y habilitar login local
-      final isNetworkError = e is AuthException &&
+      final isNetworkError =
+          e is AuthException &&
           (e.message.contains('No se pudo conectar') ||
               e.message.contains('Error de comunicación') ||
               e.message.contains('SocketException'));
 
       if (isNetworkError) {
-        final isValidLocal =
-            await _localDb.validateLocalCredentials(email, password);
+        final isValidLocal = await _localDb.validateLocalCredentials(
+          email,
+          password,
+        );
 
         if (isValidLocal) {
           final session = await _localDb.getSessionByEmail(email);
           if (session != null && mounted) {
+            if (session.rol == UserRole.admin) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Sin conexión con el servidor'),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
@@ -211,10 +224,26 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleDirectOfflineAccess() async {
-    if (_savedEmail == null) return;
+    final email = _savedEmail;
+    if (email == null) return;
+    final session = await _localDb.getSessionByEmail(email);
+    if (session != null && session.rol == UserRole.admin) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'El modo sin conexión solo está disponible para clientes (historial de compras).',
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
     AppNavigator.toOfflineHistorial(
       context,
-      userEmail: _savedEmail!,
+      userEmail: email,
       compraService: _compraService,
     );
   }
@@ -429,7 +458,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (_hasOfflineData && _savedEmail != null) ...[
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
-                        onPressed: _isLoading ? null : _handleDirectOfflineAccess,
+                        onPressed: _isLoading
+                            ? null
+                            : _handleDirectOfflineAccess,
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 48),
                           side: const BorderSide(

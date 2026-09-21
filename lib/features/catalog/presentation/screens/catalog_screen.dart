@@ -88,14 +88,45 @@ class _CatalogScreenState extends State<CatalogScreen> {
       _isLoading = true;
     });
 
-    final products = await _catalogService.getProductos(token: widget.token);
-
-    if (mounted) {
-      setState(() {
-        _allProducts = products;
-        _applyFilters();
-        _isLoading = false;
-      });
+    try {
+      final products = await _catalogService.getProductos(token: widget.token);
+      if (mounted) {
+        setState(() {
+          _allProducts = products;
+          _applyFilters();
+          _isLoading = false;
+        });
+      }
+    } on CatalogException catch (e) {
+      if (mounted) {
+        setState(() {
+          _allProducts = [];
+          _filteredProducts = [];
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _allProducts = [];
+          _filteredProducts = [];
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar productos: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 

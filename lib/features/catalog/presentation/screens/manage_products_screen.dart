@@ -38,12 +38,40 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
 
   Future<void> _loadProducts() async {
     setState(() => _isLoading = true);
-    final products = await _catalogService.getProductos(token: widget.token);
-    if (!mounted) return;
-    setState(() {
-      _products = products;
-      _isLoading = false;
-    });
+    try {
+      final products = await _catalogService.getProductos(token: widget.token);
+      if (!mounted) return;
+      setState(() {
+        _products = products;
+        _isLoading = false;
+      });
+    } on CatalogException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _products = [];
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _products = [];
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al cargar productos: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> _openCreate() async {
