@@ -5,6 +5,7 @@ import '../data/models/auth_response.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/register_screen.dart';
 import '../data/models/cart_model.dart';
+import '../data/services/cart_service.dart';
 import '../features/cart/presentation/screens/cart_screen.dart';
 import '../features/cart/presentation/screens/confirm_purchase_screen.dart';
 import '../data/models/product_model.dart';
@@ -23,6 +24,8 @@ import '../features/profile/presentation/screens/direccion_entrega_screen.dart';
 import '../features/profile/presentation/screens/metodo_pago_screen.dart';
 import '../data/models/compra_model.dart';
 import '../data/services/compra_service.dart';
+import '../data/services/tarjeta_service.dart';
+import '../data/services/direccion_service.dart';
 import '../features/compras/presentation/screens/detalle_compra_screen.dart';
 import '../features/compras/presentation/screens/historial_compras_screen.dart';
 import 'app_session.dart';
@@ -178,10 +181,19 @@ class AppNavigator {
     BuildContext context, {
     required CartModel cart,
     String? token,
+    CartService? cartService,
+    TarjetaService? tarjetaService,
+    DireccionService? direccionService,
   }) {
     return Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => ConfirmPurchaseScreen(cart: cart, token: token),
+        builder: (_) => ConfirmPurchaseScreen(
+          cart: cart,
+          token: token,
+          cartService: cartService,
+          tarjetaService: tarjetaService,
+          direccionService: direccionService,
+        ),
       ),
     );
   }
